@@ -8,7 +8,6 @@ body {
     font-family: 'Exo 2', sans-serif;
 }
 
-/* Ensure clickable elements provide visual feedback */
 .clickable:active {
     transform: scale(0.98);
     transition: transform 0.1s;
