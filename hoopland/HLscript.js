@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isTransitioning = false;
     let audioContext;
+    // I'll store the save file data here once it's loaded.
+    let loadedSaveData = null;
 
     const initAudio = () => {
         if (!audioContext) {
@@ -81,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
-    // I've added the listeners for the league/college buttons here.
+    // I added listeners for the new league/college buttons here.
     leagueBtn.addEventListener('click', () => {
         playEchoClick();
         console.log("League selected. Ready to show league editor.");
@@ -127,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, false);
 
+    // I updated this function to read and parse the file.
     function handleFile(file) {
         const fileName = file.name;
         const isJson = fileName.endsWith('.json');
@@ -140,9 +143,38 @@ document.addEventListener('DOMContentLoaded', () => {
         fileDropContainer.classList.add('hidden');
         loadingIndicator.classList.remove('hidden');
 
-        setTimeout(() => {
-            transitionTo(fileUploadScreen, leagueSelectionScreen);
-        }, 3000);
+        // I'm using FileReader to read the file's content.
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                // I'll try to parse the file content as JSON.
+                loadedSaveData = JSON.parse(event.target.result);
+                // I'm logging the actual data to the console for you to confirm.
+                console.log("File data processed successfully:", loadedSaveData);
+
+                // Now that the data is loaded, I'll start the transition.
+                setTimeout(() => {
+                    transitionTo(fileUploadScreen, leagueSelectionScreen);
+                }, 3000);
+
+            } catch (error) {
+                // If the file isn't valid JSON, I'll show an error.
+                console.error("Error parsing JSON:", error);
+                showToast("Error: Could not parse save file. Is it corrupted?", 4000);
+                // I'll bring back the drop zone so you can try again.
+                loadingIndicator.classList.add('hidden');
+                fileDropContainer.classList.remove('hidden');
+            }
+        };
+
+        reader.onerror = () => {
+            console.error("Error reading file.");
+            showToast("Error: Could not read the file.", 4000);
+            loadingIndicator.classList.add('hidden');
+            fileDropContainer.classList.remove('hidden');
+        };
+
+        reader.readAsText(file);
     }
 
     let toastTimeout;

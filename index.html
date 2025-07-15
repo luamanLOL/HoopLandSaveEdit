@@ -5,62 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaveXF - The Ultimate Game Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&">
 </head>
 <body>
 
-    <div class="background-container" id="background-container">
-        <div id="spotlight"></div>
-        <div class="stars" id="stars-container"></div>
-    </div>
+    <header class="main-header">
+        <div class="logo-container">
+            <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Icon" class="header-icon">
+            <span class="header-title">SaveXF</span>
+        </div>
+        <nav class="main-nav">
+            <a href="#" id="home-nav-link" class="nav-link">Home</a>
+            <a href="#" id="launch-editor-nav" class="nav-link">Editor</a>
+            <a href="#" class="nav-link">Documentation</a>
+        </nav>
+        <div class="header-actions">
+            <a href="#" class="nav-icon-link">GH</a>
+            <a href="#" class="nav-icon-link">DI</a>
+        </div>
+    </header>
 
-    <!-- Main content container that holds all screens -->
-    <main class="w-full h-full relative z-10">
-        <!-- Landing Screen -->
-        <div id="landing-screen" class="screen w-full h-full flex flex-col items-center justify-center text-center p-8">
-            <div class="flex flex-col items-center">
-                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Logo" class="w-80 mb-4 logo-shadow">
-                
-                <p class="text-base md:text-lg text-gray-300 mt-4 max-w-md">
-                    The ultimate save editor for your favorite games. Customize players, teams, and your entire experience with a powerful and intuitive tool.
+    <main class="main-content-area">
+        <div id="landing-screen" class="screen">
+             <div class="content-wrapper">
+                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Icon" class="content-icon mb-4">
+                <!-- Apply text-chrome ONLY to "SaveXF" -->
+                <h1 class="text-5xl md:text-6xl font-bold mb-4">Welcome to <span class="text-chrome">SaveXF</span></h1>
+                <p class="text-base md:text-lg text-gray-400 mt-4 max-w-xl">
+                    We specialize in game save analysis and modification. Our team combines deep reverse engineering expertise with practical tools to help you understand and customize your favorite games.
                 </p>
-                <button id="continue-btn" class="mt-10 bg-purple-900/50 hover:bg-violet-600 border border-purple-500 text-white font-bold py-3 px-10 md:py-4 md:px-12 rounded-lg text-xl md:text-2xl shadow-lg clickable">
-                    &lt; Launch Editor &gt;
-                </button>
+                <div class="flex items-center gap-4 mt-10">
+                    <button id="launch-editor-btn" class="btn btn-primary">
+                        Launch Editor &rarr;
+                    </button>
+                    <button id="discord-btn" class="btn btn-secondary">
+                        Discord
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Game Selection Screen -->
-        <div id="game-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center text-center p-4">
-            <h1 class="text-4xl md:text-5xl font-bungee text-purple-chrome mb-10">Select a Game</h1>
-            <div class="flex flex-wrap justify-center gap-8">
-                <div id="hoop-land-btn" class="game-card">
-                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/1a1a2e/e0e0e0?text=Hoop+Land');"></div>
-                    <div class="game-card-overlay"></div>
-                    <h2 class="game-card-title">Hoop Land</h2>
+        <div id="editor-view" class="screen hidden">
+            <div id="game-selection-section">
+                <h1 class="text-4xl md:text-5xl font-bungee text-chrome mb-10">Select a Game</h1>
+                <div class="flex flex-wrap justify-center gap-8">
+                    <div id="hoop-land-btn" class="game-card">
+                        <div class="game-card-bg" style="background-image: url('https://cdn.discordapp.com/attachments/1266995410795495487/1394446830636499145/2Q.png?ex=6876d74f&is=687585cf&hm=3158d752da31180fa953f1319d88b2ff387cfdeb47f4fcb7c3dc6eb073ed23ee&');"></div>
+                        <div class="game-card-overlay"></div><h2 class="game-card-title">Hoop Land</h2>
+                    </div>
+                    <div id="prize-fighters-btn" class="game-card">
+                        <div class="game-card-bg" style="background-image: url('https://cdn.discordapp.com/attachments/1266995410795495487/1394447262465134622/9k.png?ex=6876d7b6&is=68758636&hm=ec606f8e28b70d074dac30bdc6137da995423c0ec597b8446e58a320cef84acc&');"></div>
+                        <div class="game-card-overlay"></div><h2 class="game-card-title">Prize Fighters 2</h2>
+                    </div>
+                    <div id="retro-bowl-btn" class="game-card">
+                       <div class="game-card-bg" style="background-image: url('https://cdn.discordapp.com/attachments/1266995410795495487/1394447372461015080/9k.png?ex=6876d7d1&is=68758651&hm=425951dc0351f3151d6efaae937f60131cf46f57c1cb3c8a699c89d8678ceba5&');"></div>
+                       <div class="game-card-overlay"></div><h2 class="game-card-title">Retro Bowl</h2>
+                   </div>
+                   <div id="retro-bowl-college-btn" class="game-card">
+                       <div class="game-card-bg" style="background-image: url('https://cdn.discordapp.com/attachments/1266995410795495487/1394447407063760926/8SZY8nMnSfFHMuwzPRhGZbRAMukUsaYI8Y4YyRI8ZYyRmxugix4TAMwzAMwzBn8wnMOtOuBaV4ywAAAABJRU5ErkJggg.png?ex=6876d7d9&is=68758659&hm=43ca564b1fc340733da6cd9967541931cf568f51c3ea4f816c9f11adf66ecf42&');"></div>
+                       <div class="game-card-overlay"></div><h2 class="game-card-title">Retro Bowl College</h2>
+                   </div>
                 </div>
-                <div id="prize-fighters-btn" class="game-card">
-                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/2e1a1a/e0e0e0?text=Prize+Fighters');"></div>
-                    <div class="game-card-overlay"></div>
-                    <h2 class="game-card-title">Prize Fighters 2</h2>
-                </div>
-                <div id="retro-bowl-btn" class="game-card">
-                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/1a2e1a/e0e0e0?text=Retro+Bowl');"></div>
-                    <div class="game-card-overlay"></div>
-                    <h2 class="game-card-title">Retro Bowl</h2>
-                </div>
-                <div id="retro-bowl-college-btn" class="game-card">
-                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/2e2e1a/e0e0e0?text=Retro+Bowl+College');"></div>
-                    <div class="game-card-overlay"></div>
-                    <h2 class="game-card-title">Retro Bowl College</h2>
+            </div>
+            
+            <div id="details-page-content" class="game-features-section">
+                <div class="details-content">
+                    <h2 class="details-title">Hoop Land Editor Features</h2>
+                    <p class="details-subtitle">Take full control of your Hoop Land universe with these powerful modification tools.</p>
+                    <div class="features-grid">
+                        <!-- Feature Cards - Adjusted for new layout and text alignment -->
+                        <div class="feature-card">
+                            <i class="fa-solid fa-user-pen feature-icon"></i>
+                            <div>
+                                <h3>Player Identity</h3>
+                                <p>Change <strong>Age</strong>, <strong>Position</strong>, <strong>Height</strong> (inches), <strong>Weight</strong>, and <strong>Build Name</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-chart-line feature-icon"></i>
+                            <div>
+                                <h3>Player Attributes</h3>
+                                <p>Max out or customize any stat for leagues, teams, or individuals.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-star feature-icon"></i>
+                            <div>
+                                <h3>Potential & Badges</h3>
+                                <p>Set <strong>Potential</strong> from 1-5 stars and unlock all <strong>Badges</strong> at max level.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-file-signature feature-icon"></i>
+                            <div>
+                                <h3>Contract Details</h3>
+                                <p>Modify player <strong>Contracts</strong>, including years and salary.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-arrows-to-dot feature-icon"></i>
+                            <div>
+                                <h3>Tendencies & Stats</h3>
+                                <p>Adjust player <strong>Tendencies</strong> and edit career/historical <strong>Stats</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-user-plus feature-icon"></i>
+                            <div>
+                                <h3>Create Players</h3>
+                                <p>Build an entirely new player from scratch to join your team.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-user-tie feature-icon"></i>
+                            <div>
+                                <h3>Coach Modding</h3>
+                                <p>Boost your coach's attributes and strategic preferences.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-trophy feature-icon"></i>
+                            <div>
+                                <h3>Awards</h3>
+                                <p>Assign custom team and player <strong>Awards</strong> like MVPs and championships.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fa-solid fa-coins feature-icon"></i>
+                            <div>
+                                <h3>Economy</h3>
+                                <p>Modify in-game <strong>Coins</strong> and team <strong>Fans</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="continue-to-hoop-land-editor" class="btn btn-primary btn-large mt-12">
+                        Continue to Hoop Land Editor &rarr;
+                    </button>
                 </div>
             </div>
         </div>
     </main>
-
+    
     <div id="notification-toast"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
