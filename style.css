@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Exo+2:wght@400;600;700&display=swap');
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Exo 2', sans-serif;
+    color: #ffffff;
+    background-color: #0c0a18;
+}
+
+/* --- Animated Background --- */
+.background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    background-color: #0c0a18;
+}
+
+#spotlight {
+    position: fixed;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 60%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease-out;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0; }
+    50% { opacity: 1; } 
+    100% { opacity: 0; }
+}
+
+.stars { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; }
+.star { 
+    position: absolute; 
+    background-color: #ce2a2a; 
+    border-radius: 100%; 
+    animation: twinkle 3.5s infinite; 
+    box-shadow: 0 0 6px 2px rgb(56, 1, 255);
+}
+
+/* --- File Drop Zone --- */
+#file-drop-zone {
+    border: 3px dashed #4c1d95;
+    transition: all 0.3s ease-in-out;
+}
+#file-drop-zone.dragover {
+    background-color: rgba(76, 29, 149, 0.3);
+    border-color: #a78bfa;
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(167, 139, 250, 0.5);
+}
+
+/* --- General Styles & Animations --- */
+.font-bungee { font-family: 'Bungee', cursive; }
+.logo-shadow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7)); }
+.clickable:active { transform: scale(0.98); }
+#continue-btn, #select-file-btn { transition: background-color 0.3s ease-in-out, transform 0.1s; }
+
+/* --- Game Card Styles --- */
+.game-card {
+    position: relative;
+    width: 220px;
+    height: 300px;
+    border-radius: 1rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border: 2px solid #4c1d95;
+}
+.game-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(167, 139, 250, 0.3);
+    border-color: #a78bfa;
+}
+.game-card-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.5s ease;
+}
+.game-card:hover .game-card-bg { transform: scale(1.1); }
+.game-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to top, rgba(12, 10, 24, 1) 20%, rgba(12, 10, 24, 0));
+}
+.game-card-title {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+/* I added these new styles for the League/College buttons. */
+.selection-button {
+    background-color: #1f2937; /* gray-800 */
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 0.75rem;
+    padding: 1.5rem 2.5rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease-in-out;
+    width: 300px;
+}
+.selection-button:hover {
+    background-color: #374151; /* gray-700 */
+    border-color: #4f46e5; /* indigo-600 */
+    transform: translateY(-3px);
+}
+.selection-button-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e5e7eb; /* gray-200 */
+}
+.selection-button-desc {
+    font-size: 0.875rem;
+    color: #9ca3af; /* gray-400 */
+}
+
+
+.text-purple-chrome {
+    background: linear-gradient(45deg, #a78bfa, #7c3aed, #c084fc, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: purple-chrome-animation 6s ease-in-out infinite;
+    background-size: 200% 200%;
+}
+
+@keyframes purple-chrome-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.loader {
+    border: 5px solid #374151;
+    border-top: 5px solid #a78bfa;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.screen { transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+.screen.fade-out { opacity: 0; transform: scale(0.95); pointer-events: none; }
+.hidden { display: none !important; }
+
+#notification-toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #22c55e;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    z-index: 100;
+    transition: bottom 0.5s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+#notification-toast.show { bottom: 30px; }
