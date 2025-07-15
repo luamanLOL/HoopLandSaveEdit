@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         outgoingScreen.classList.add('fade-out');
         
-        outgoingScreen.addEventListener('transitionend', () => {
+        // I'm using a timeout for reliability.
+        setTimeout(() => {
             outgoingScreen.classList.add('hidden');
             outgoingScreen.classList.remove('fade-out');
             
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isTransitioning = false;
             }, 50);
 
-        }, { once: true });
+        }, 500);
     }
 
     // I've added the listeners for the league/college buttons here.

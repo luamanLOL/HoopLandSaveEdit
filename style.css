@@ -14,7 +14,7 @@ body {
     background-color: #0c0a18;
 }
 
-/* --- Animated Background --- */
+/* I've kept all the background styles here as they are global. */
 .background-container {
     position: fixed;
     top: 0;
@@ -52,25 +52,12 @@ body {
     box-shadow: 0 0 6px 2px rgb(56, 1, 255);
 }
 
-/* --- File Drop Zone --- */
-#file-drop-zone {
-    border: 3px dashed #4c1d95;
-    transition: all 0.3s ease-in-out;
-}
-#file-drop-zone.dragover {
-    background-color: rgba(76, 29, 149, 0.3);
-    border-color: #a78bfa;
-    transform: scale(1.02);
-    box-shadow: 0 0 25px rgba(167, 139, 250, 0.5);
-}
-
-/* --- General Styles & Animations --- */
+/* I've kept the general styles here as well. */
 .font-bungee { font-family: 'Bungee', cursive; }
 .logo-shadow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7)); }
 .clickable:active { transform: scale(0.98); }
-#continue-btn, #select-file-btn { transition: background-color 0.3s ease-in-out, transform 0.1s; }
+#continue-btn { transition: background-color 0.3s ease-in-out, transform 0.1s; }
 
-/* --- Game Card Styles --- */
 .game-card {
     position: relative;
     width: 220px;
@@ -115,34 +102,6 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
-/* I added these new styles for the League/College buttons. */
-.selection-button {
-    background-color: #1f2937; /* gray-800 */
-    border: 1px solid #374151; /* gray-700 */
-    border-radius: 0.75rem;
-    padding: 1.5rem 2.5rem;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s ease-in-out;
-    width: 300px;
-}
-.selection-button:hover {
-    background-color: #374151; /* gray-700 */
-    border-color: #4f46e5; /* indigo-600 */
-    transform: translateY(-3px);
-}
-.selection-button-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #e5e7eb; /* gray-200 */
-}
-.selection-button-desc {
-    font-size: 0.875rem;
-    color: #9ca3af; /* gray-400 */
-}
-
-
 .text-purple-chrome {
     background: linear-gradient(45deg, #a78bfa, #7c3aed, #c084fc, #a78bfa);
     -webkit-background-clip: text;
@@ -156,20 +115,6 @@ body {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-}
-
-.loader {
-    border: 5px solid #374151;
-    border-top: 5px solid #a78bfa;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 .screen { transition: opacity 0.5s ease-out, transform 0.5s ease-out; }

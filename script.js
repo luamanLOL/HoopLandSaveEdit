@@ -1,23 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // I added references for the new screen and its buttons.
+    // I've simplified the references to only what this page needs.
     const landingScreen = document.getElementById('landing-screen');
     const gameSelectionScreen = document.getElementById('game-selection-screen');
-    const fileUploadScreen = document.getElementById('file-upload-screen');
-    const leagueSelectionScreen = document.getElementById('league-selection-screen');
     
     const continueBtn = document.getElementById('continue-btn');
     const hoopLandBtn = document.getElementById('hoop-land-btn');
     const prizeFightersBtn = document.getElementById('prize-fighters-btn');
     const retroBowlBtn = document.getElementById('retro-bowl-btn');
     const retroBowlCollegeBtn = document.getElementById('retro-bowl-college-btn');
-    const selectFileBtn = document.getElementById('select-file-btn');
-    const leagueBtn = document.getElementById('league-btn');
-    const collegeBtn = document.getElementById('college-btn');
-
-    const fileDropContainer = document.getElementById('file-drop-container');
-    const fileDropZone = document.getElementById('file-drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const loadingIndicator = document.getElementById('loading-indicator');
     
     const starsContainer = document.getElementById('stars-container');
     const spotlight = document.getElementById('spotlight');
@@ -38,27 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        const convolver = audioContext.createConvolver();
-        const impulseLength = audioContext.sampleRate * 1.5;
-        const impulse = audioContext.createBuffer(2, impulseLength, audioContext.sampleRate);
-        const impulseL = impulse.getChannelData(0);
-        const impulseR = impulse.getChannelData(1);
-        for (let i = 0; i < impulseLength; i++) {
-            const decay = Math.pow(1 - i / impulseLength, 2);
-            impulseL[i] = (Math.random() * 2 - 1) * decay;
-            impulseR[i] = (Math.random() * 2 - 1) * decay;
-        }
-        convolver.buffer = impulse;
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+        // Simple click without echo for faster response
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
         oscillator.connect(gainNode);
-        gainNode.connect(convolver);
-        convolver.connect(audioContext.destination);
+        gainNode.connect(audioContext.destination);
         oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
+        oscillator.stop(audioContext.currentTime + 0.1);
     }
 
     document.addEventListener('mousemove', (e) => {
@@ -86,7 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         outgoingScreen.classList.add('fade-out');
         
-        outgoingScreen.addEventListener('transitionend', () => {
+        // I'm using a timeout instead of an event listener for reliability.
+        setTimeout(() => {
             outgoingScreen.classList.add('hidden');
             outgoingScreen.classList.remove('fade-out');
             
@@ -97,81 +76,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 isTransitioning = false;
             }, 50);
 
-        }, { once: true });
+        }, 500); // This matches the CSS animation duration.
     }
 
     continueBtn.addEventListener('click', () => transitionTo(landingScreen, gameSelectionScreen));
-    hoopLandBtn.addEventListener('click', () => transitionTo(gameSelectionScreen, fileUploadScreen));
     
-    // I added listeners for the new league/college buttons.
-    leagueBtn.addEventListener('click', () => {
+    // I've updated this to redirect to the new editor page.
+    hoopLandBtn.addEventListener('click', () => {
         playEchoClick();
-        console.log("League selected. Ready to show league editor.");
-        showToast("League editor coming soon!");
+        // This will navigate the browser to your new editor page.
+        window.location.href = 'hoopland/index.html';
     });
-    collegeBtn.addEventListener('click', () => {
-        playEchoClick();
-        console.log("College selected. Ready to show college editor.");
-        showToast("College editor coming soon!");
-    });
-
 
     prizeFightersBtn.addEventListener('click', () => showToast('Prize Fighters 2 editor coming soon!'));
     retroBowlBtn.addEventListener('click', () => showToast('Retro Bowl editor coming soon!'));
     retroBowlCollegeBtn.addEventListener('click', () => showToast('Retro Bowl College editor coming soon!'));
-
-    selectFileBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            handleFile(file);
-        }
-    });
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        fileDropZone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        fileDropZone.addEventListener(eventName, () => fileDropZone.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        fileDropZone.addEventListener(eventName, () => fileDropZone.classList.remove('dragover'), false);
-    });
-
-    fileDropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const file = dt.files[0];
-        if (file) {
-            handleFile(file);
-        }
-    }, false);
-
-    // I updated this function to validate the file and transition to the new screen.
-    function handleFile(file) {
-        const fileName = file.name;
-        const isJson = fileName.endsWith('.json');
-        const hasNoExtension = !fileName.includes('.');
-
-        if (!isJson && !hasNoExtension) {
-            showToast("Invalid File Type. Please use .json or a file with no extension.", 4000);
-            return;
-        }
-
-        fileDropContainer.classList.add('hidden');
-        loadingIndicator.classList.remove('hidden');
-
-        setTimeout(() => {
-            // I removed the background theme change logic.
-            transitionTo(fileUploadScreen, leagueSelectionScreen);
-        }, 3000);
-    }
 
     let toastTimeout;
     function showToast(message, duration = 3000) {
