@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaveXF - The Ultimate Game Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&">
+</head>
+<body>
+
+    <div class="background-container" id="background-container">
+        <div id="spotlight"></div>
+        <div class="stars" id="stars-container"></div>
+    </div>
+
+    <!-- Main content container that holds all screens -->
+    <main class="w-full h-full relative z-10">
+        <!-- Landing Screen -->
+        <div id="landing-screen" class="screen w-full h-full flex flex-col items-center justify-center text-center p-8">
+            <div class="flex flex-col items-center">
+                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Logo" class="w-80 mb-4 logo-shadow">
+                
+                <p class="text-base md:text-lg text-gray-300 mt-4 max-w-md">
+                    The ultimate save editor for your favorite games. Customize players, teams, and your entire experience with a powerful and intuitive tool.
+                </p>
+                <button id="continue-btn" class="mt-10 bg-purple-900/50 hover:bg-violet-600 border border-purple-500 text-white font-bold py-3 px-10 md:py-4 md:px-12 rounded-lg text-xl md:text-2xl shadow-lg clickable">
+                    &lt; Launch Editor &gt;
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Selection Screen -->
+        <div id="game-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center text-center p-4">
+            <h1 class="text-4xl md:text-5xl font-bungee text-purple-chrome mb-10">Select a Game</h1>
+            <div class="flex flex-wrap justify-center gap-8">
+                <div id="hoop-land-btn" class="game-card">
+                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/1a1a2e/e0e0e0?text=Hoop+Land');"></div>
+                    <div class="game-card-overlay"></div>
+                    <h2 class="game-card-title">Hoop Land</h2>
+                </div>
+                <div id="prize-fighters-btn" class="game-card">
+                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/2e1a1a/e0e0e0?text=Prize+Fighters');"></div>
+                    <div class="game-card-overlay"></div>
+                    <h2 class="game-card-title">Prize Fighters 2</h2>
+                </div>
+                <div id="retro-bowl-btn" class="game-card">
+                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/1a2e1a/e0e0e0?text=Retro+Bowl');"></div>
+                    <div class="game-card-overlay"></div>
+                    <h2 class="game-card-title">Retro Bowl</h2>
+                </div>
+                <div id="retro-bowl-college-btn" class="game-card">
+                    <div class="game-card-bg" style="background-image: url('https://placehold.co/400x600/2e2e1a/e0e0e0?text=Retro+Bowl+College');"></div>
+                    <div class="game-card-overlay"></div>
+                    <h2 class="game-card-title">Retro Bowl College</h2>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="notification-toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
