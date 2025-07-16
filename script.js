@@ -1,100 +1,67 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Screen references
-    const landingScreen = document.getElementById('landing-screen');
+
+    // --- View Switching Logic ---
+    const landingView = document.getElementById('landing-view');
     const editorView = document.getElementById('editor-view');
-    const gameSelectionSection = document.getElementById('game-selection-section'); // Reference to the game selection section
-    const detailsPageContent = document.getElementById('details-page-content'); // Reference to the details page section
-    
-    // Button and link references
     const launchEditorBtn = document.getElementById('launch-editor-btn');
-    const launchEditorNav = document.getElementById('launch-editor-nav');
-    const homeNavLink = document.getElementById('home-nav-link');
-    
-    // Game Card references
-    const hoopLandBtn = document.getElementById('hoop-land-btn');
-    const prizeFightersBtn = document.getElementById('prize-fighters-btn');
-    const retroBowlBtn = document.getElementById('retro-bowl-btn');
-    const retroBowlCollegeBtn = document.getElementById('retro-bowl-college-btn');
-    const continueToHoopLandEditorBtn = document.getElementById('continue-to-hoop-land-editor');
+    const navLaunchEditor = document.getElementById('nav-launch-editor');
+    const homeBtn = document.getElementById('nav-home-btn');
 
-    // Toast reference
-    const notificationToast = document.getElementById('notification-toast');
+    const showEditor = () => {
+        landingView.classList.remove('active-view');
+        editorView.classList.add('active-view');
+    };
 
-    let isTransitioning = false;
-    // Removed audioContext and related audio functions
+    const showHome = () => {
+        editorView.classList.remove('active-view');
+        landingView.classList.add('active-view');
+    };
 
-    // Screen Transition Logic (remains largely the same for main screens)
-    function transitionToScreen(outgoingScreen, incomingScreen, callback = () => {}) {
-        if (isTransitioning) return;
-        isTransitioning = true;
-        outgoingScreen.classList.add('fade-out');
+    launchEditorBtn.addEventListener('click', showEditor);
+    navLaunchEditor.addEventListener('click', showEditor);
+    homeBtn.addEventListener('click', showHome);
+
+
+    // --- Editor Game Selection Logic ---
+    const gameOptions = document.querySelectorAll('.game-option');
+    const detailsPanes = document.querySelectorAll('.game-details');
+    const hoopLandDetails = document.getElementById('details-hoop-land');
+    const comingSoonDetails = document.getElementById('details-coming-soon');
+
+    function selectGame(selectedOption) {
+        // Deactivate all options and hide all details panes
+        gameOptions.forEach(opt => opt.classList.remove('active'));
+        detailsPanes.forEach(pane => pane.style.display = 'none');
+
+        if (!selectedOption) return;
+
+        // Activate the selected game option
+        selectedOption.classList.add('active');
+        const gameId = selectedOption.dataset.game;
+
+        // Show the corresponding details pane
+        let paneToShow = null;
+        switch (gameId) {
+            case 'hoop-land':
+                paneToShow = hoopLandDetails;
+                break;
+            case 'prize-fighters':
+            case 'retro-bowl':
+            case 'retro-bowl-college':
+                paneToShow = comingSoonDetails;
+                break;
+        }
         
-        setTimeout(() => {
-            outgoingScreen.classList.add('hidden');
-            outgoingScreen.classList.remove('fade-out');
-            incomingScreen.classList.remove('hidden');
-            setTimeout(() => {
-                incomingScreen.classList.remove('fade-out');
-                isTransitioning = false;
-                callback(); // Execute callback after transition
-            }, 50);
-        }, 500);
+        if (paneToShow) {
+            paneToShow.style.display = 'block';
+        }
     }
 
-    // This function is no longer needed for toggling hidden states within editor-view
-    // as detailsPageContent will always be present and we'll use scrollIntoView.
-    // function showEditorPage(pageToShow) { ... }
-    
-    // Event Listeners for Main Navigation
-    const goToEditorMain = () => {
-        if (editorView.classList.contains('hidden')) {
-            transitionToScreen(landingScreen, editorView, () => {
-                // When entering editor view, both game selection and details are visible by default in HTML.
-                // No specific 'showEditorPage' call needed here.
-            });
-        }
-    };
-    
-    const goToHomeView = () => {
-        if (landingScreen.classList.contains('hidden')) {
-            transitionToScreen(editorView, landingScreen);
-            // No specific 'showEditorPage' call needed when going home
-        }
-    };
-
-    launchEditorBtn.addEventListener('click', goToEditorMain);
-    launchEditorNav.addEventListener('click', (e) => { e.preventDefault(); goToEditorMain(); });
-    homeNavLink.addEventListener('click', (e) => { e.preventDefault(); goToHomeView(); });
-
-    // Game Selection & Details Page Transition Logic
-    hoopLandBtn.addEventListener('click', () => {
-        // Scroll smoothly to the details page content when Hoop Land is clicked
-        detailsPageContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Add click event listeners to all game options
+    gameOptions.forEach(option => {
+        option.addEventListener('click', () => selectGame(option));
     });
 
-    continueToHoopLandEditorBtn.addEventListener('click', () => {
-        window.location.href = 'hoopland/index.html'; // This will navigate away
-    });
-
-    const handleComingSoon = () => {
-        // For other games, just show the toast.
-        // The detailsPageContent is always visible for Hoop Land's features,
-        // so no need to transition anything within editor-view here.
-        showToast('This editor is coming soon!');
-    };
-
-    prizeFightersBtn.addEventListener('click', handleComingSoon);
-    retroBowlBtn.addEventListener('click', handleComingSoon);
-    retroBowlCollegeBtn.addEventListener('click', handleComingSoon);
-
-    // Toast Notification Logic
-    let toastTimeout;
-    function showToast(message, duration = 3000) {
-        if (toastTimeout) clearTimeout(toastTimeout);
-        notificationToast.textContent = message;
-        notificationToast.classList.add('show');
-        toastTimeout = setTimeout(() => {
-            notificationToast.classList.remove('show');
-        }, duration);
-    }
-});
+    // Deselect all by default so the pane is empty initially
+    selectGame(null);
+}); 
