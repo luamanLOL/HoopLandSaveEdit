@@ -8,24 +8,31 @@
 </head>
 <body>
     <div class="aurora-background"></div>
+    <div id="notification-toast"></div>
 
     <div id="landing-view" class="view active-view">
         <header class="top-bar">
             <div class="logo">
-                <span>SaveXF</span>
+                <span class="animated-gradient">SaveXF</span>
             </div>
             <nav class="main-nav">
-                <a id="nav-launch-editor">Editor</a>
-                <a>Documentation</a>
+                <a id="nav-launch-editor"><span>Editor</span></a>
+                <a class="toast-btn" data-name="Features"><span>Features</span></a>
             </nav>
         </header>
         
         <main class="content-container">
-            <h1>Welcome to SaveXF</h1>
+            <h1>Welcome to Save<span class="animated-gradient">XF</span></h1>
             <p class="subtitle">The first dedicated web-based save file editor for your favorite retro sports games. We specialize in providing a reliable, secure, and easy-to-use platform for modifying game data directly in your browser.</p>
             <div class="cta-buttons">
-                <button id="launch-editor-btn" class="btn btn-primary">Open Editor &rarr;</button>
-                <a class="btn btn-secondary">Join Discord</a>
+                <button id="launch-editor-btn" class="btn btn-primary"><span>Open Editor &rarr;</span></button>
+                <a class="btn btn-secondary toast-btn" data-name="Discord"><span>Join Discord</span></a>
+            </div>
+
+            <div class="footer-note">
+                <p>This project was created solo by 5xf with love and passion, offered entirely for free.</p>
+                <p>If you enjoy the editor, be sure to give a special thanks!</p>
+                <p class="copyright">Copyright © 2024-2025 SaveXF LLC. NO rights reserved😂.</p>
             </div>
         </main>
     </div>
@@ -33,11 +40,11 @@
     <div id="editor-view" class="view">
         <header class="top-bar">
             <div class="logo">
-                <span>SaveXF</span>
+                <span class="animated-gradient">SaveXF</span>
             </div>
             <nav class="main-nav">
-                <a id="nav-home-btn">Home</a>
-                <a>Documentation</a>
+                <a id="nav-home-btn"><span>Home</span></a>
+                <a class="toast-btn" data-name="Features"><span>Features</span></a>
             </nav>
         </header>
 
@@ -78,14 +85,7 @@
 
             <div class="details-pane">
                 <div class="game-details" id="details-hoop-land">
-                    <h4 class="summary-title">Feature Summary</h4>
-                    <div class="features-list-grid">
-                        <div class="feature-item">Player Identity & Contracts</div>
-                        <div class="feature-item">Player Attributes & Badges</div>
-                        <div class="feature-item">Coach Modding</div>
-                        <div class="feature-item">Awards, History, and much more...</div>
-                    </div>
-                    <a class="btn btn-primary">Continue to Hoop Land Editor &rarr;</a>
+                    <a href="hoopland/index.html" id="continue-to-hoopland" class="btn btn-primary"><span>Continue to Hoop Land Editor &rarr;</span></a>
                 </div>
 
                 <div class="game-details" id="details-coming-soon">
@@ -93,6 +93,17 @@
                 </div>
             </div>
         </main>
+    </div>
+    
+    <div class="footer-banner">
+        <div class="footer-left">
+            <h2>SaveXF <span class="animated-gradient version">V0.1</span></h2>
+            <p>A new era of save file editing, brought to you on all devices.</p>
+        </div>
+        <div class="footer-right">
+            <a class="btn btn-secondary toast-btn" data-message="Donations coming soon"><span>Donate</span></a>
+            <a class="btn btn-secondary toast-btn" data-name="Tutorials"><span>Tutorials</span></a>
+        </div>
     </div>
     
     <script src="script.js"></script>

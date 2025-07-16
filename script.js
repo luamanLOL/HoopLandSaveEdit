@@ -29,17 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const comingSoonDetails = document.getElementById('details-coming-soon');
 
     function selectGame(selectedOption) {
-        // Deactivate all options and hide all details panes
         gameOptions.forEach(opt => opt.classList.remove('active'));
         detailsPanes.forEach(pane => pane.style.display = 'none');
 
         if (!selectedOption) return;
 
-        // Activate the selected game option
         selectedOption.classList.add('active');
         const gameId = selectedOption.dataset.game;
 
-        // Show the corresponding details pane
         let paneToShow = null;
         switch (gameId) {
             case 'hoop-land':
@@ -57,11 +54,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add click event listeners to all game options
     gameOptions.forEach(option => {
         option.addEventListener('click', () => selectGame(option));
     });
 
-    // Deselect all by default so the pane is empty initially
     selectGame(null);
+
+    // --- Notification Toast Logic ---
+    const notificationToast = document.getElementById('notification-toast');
+    const toastButtons = document.querySelectorAll('.toast-btn');
+    let toastTimeout;
+
+    function showToast(message) {
+        if (toastTimeout) {
+            clearTimeout(toastTimeout);
+        }
+        notificationToast.textContent = message;
+        notificationToast.classList.add('show');
+        toastTimeout = setTimeout(() => {
+            notificationToast.classList.remove('show');
+        }, 3000);
+    }
+
+    toastButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const customMessage = e.currentTarget.dataset.message;
+            const featureName = e.currentTarget.dataset.name;
+            
+            if (customMessage) {
+                showToast(customMessage);
+            } else if (featureName) {
+                showToast(`${featureName} will be added soon!`);
+            }
+        });
+    });
+
+    // --- NEW: Smooth Page Transition ---
+    const continueToHoopLandBtn = document.getElementById('continue-to-hoopland');
+    if (continueToHoopLandBtn) {
+        continueToHoopLandBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const destination = e.currentTarget.href;
+            document.body.classList.add('page-fade-out');
+            setTimeout(() => {
+                window.location.href = destination;
+            }, 400); // This duration should match the CSS transition time
+        });
+    }
 });

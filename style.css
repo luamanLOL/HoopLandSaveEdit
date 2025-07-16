@@ -8,6 +8,10 @@
     --text-secondary: #8B8B90;
     --accent-primary: #8A63D2;
     --accent-secondary: #3D99A6;
+    --gradient: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-secondary));
+    --editor-container-padding: 10rem 2rem 4rem;
+    --editor-h1-size: 2.5rem;
+    --editor-subtitle-size: 1.125rem;
 }
 
 *, *::before, *::after {
@@ -21,6 +25,13 @@ body {
     font-family: 'Inter', sans-serif;
     color: var(--text-primary);
     overflow-x: hidden;
+    padding-bottom: 120px;
+    opacity: 1; /* For page transitions */
+    transition: opacity 0.4s ease-out; /* For page transitions */
+}
+/* NEW: Page fade out style */
+body.page-fade-out {
+    opacity: 0;
 }
 
 .aurora-background {
@@ -72,6 +83,25 @@ body {
     font-weight: 500;
     transition: color 0.2s ease;
     cursor: pointer;
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.main-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.main-nav a:hover::after {
+    transform: scaleX(1);
 }
 
 .main-nav a:hover {
@@ -89,22 +119,31 @@ body {
 .content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 30rem 2rem 4rem; /* UPDATED PADDING */
+    padding: 17rem 2rem 4rem;
     text-align: center;
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
     font-weight: 700;
     margin-bottom: 1rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: baseline;
+    flex-wrap: wrap; /* Allow wrapping if needed */
+}
+
+h1 .animated-gradient {
+    font-size: 3.25rem;
+    margin-left: 0.25rem;
 }
 
 .subtitle {
-    font-size: 1.125rem;
+    font-size: 1.2rem;
     color: var(--text-secondary);
     line-height: 1.6;
     max-width: 650px;
-    margin: 0 auto 2.5rem auto;
+    margin: 0 auto 2rem auto;
 }
 
 .cta-buttons {
@@ -115,7 +154,7 @@ h1 {
 
 .btn {
     display: inline-block;
-    padding: 0.6rem 1.2rem;
+    padding: 0.75rem 1.5rem;
     border-radius: 6px;
     text-decoration: none;
     font-size: 0.9rem;
@@ -123,6 +162,33 @@ h1 {
     transition: all 0.2s ease;
     border: 1px solid transparent;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: -1;
+}
+
+.btn:hover::before {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.btn span {
+    position: relative;
+    z-index: 2;
 }
 
 .btn-primary {
@@ -130,35 +196,40 @@ h1 {
     color: var(--text-primary);
     border-color: var(--accent-primary);
 }
-.btn-primary:hover {
-    background-color: #7A58B8;
-    border-color: #7A58B8;
-}
 
 .btn-secondary {
     background-color: var(--surface);
     color: var(--text-secondary);
     border-color: var(--border);
 }
+
 .btn-secondary:hover {
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
 
-/* Editor View Styles */
+#editor-view .content-container {
+    padding: var(--editor-container-padding);
+}
+#editor-view h1 {
+    font-size: var(--editor-h1-size);
+}
+#editor-view .subtitle {
+    font-size: var(--editor-subtitle-size);
+}
 .game-selector {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     text-align: left;
-    margin-top: 2rem;
+    margin-top: 5rem;
 }
 
 .game-option {
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1.25rem;
+    padding: 1.35rem;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -233,8 +304,109 @@ h1 {
     border: 1px solid var(--border);
     padding: 1rem 1.25rem;
     border-radius: 6px;
+}
+
+.feature-item h4 {
     font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
     color: var(--text-primary);
+}
+
+.feature-item p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.footer-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #0A0A0C;
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.footer-left h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.footer-left p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.animated-gradient {
+    background: var(--gradient);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: gradient-flow 3s ease-in-out infinite;
+    font-weight: 700;
+}
+
+/* NEW: Font size for the header logo specifically */
+.logo .animated-gradient {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.footer-left h2 .version {
+    font-size: 1.5rem;
+}
+
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.footer-right {
+    display: flex;
+    gap: 1rem;
+}
+
+.footer-note {
+    margin-top: 8rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.footer-note .copyright {
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    color: #555;
+}
+
+#notification-toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    z-index: 1000;
+    transition: all 0.5s ease-in-out;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: 500;
+}
+#notification-toast.show {
+    bottom: 120px;
 }
 
 @keyframes fadeIn {
@@ -244,6 +416,13 @@ h1 {
 
 @media (max-width: 768px) {
     .content-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    #landing-view .content-container {
+        padding-top: 15rem;
+    }
+     #editor-view .content-container {
         padding-top: 8rem;
     }
     .game-selector, .features-list-grid {
@@ -251,5 +430,17 @@ h1 {
     }
     .top-bar .main-nav {
         display: none;
+    }
+    .footer-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+        padding-bottom: 1rem;
+    }
+    body {
+        padding-bottom: 200px;
+    }
+    #notification-toast.show {
+        bottom: 210px;
     }
 }
