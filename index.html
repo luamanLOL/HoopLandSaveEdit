@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaveXF - Web-Based Save Editor</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&">
 </head>
 <body>
     <div class="aurora-background"></div>
@@ -13,26 +12,20 @@
     <div id="landing-view" class="view active-view">
         <header class="top-bar">
             <div class="logo">
-                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Logo">
                 <span>SaveXF</span>
             </div>
             <nav class="main-nav">
-                <a href="#" id="nav-launch-editor">Editor</a>
-                <a href="#">Documentation</a>
+                <a id="nav-launch-editor">Editor</a>
+                <a>Documentation</a>
             </nav>
         </header>
         
         <main class="content-container">
-            <div class="welcome-logo">
-                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Eye Logo">
-            </div>
             <h1>Welcome to SaveXF</h1>
-            <p class="subtitle">
-                The first dedicated web-based save file editor for your favorite retro sports games. We specialize in providing a reliable, secure, and easy-to-use platform for modifying game data directly in your browser.
-            </p>
+            <p class="subtitle">The first dedicated web-based save file editor for your favorite retro sports games. We specialize in providing a reliable, secure, and easy-to-use platform for modifying game data directly in your browser.</p>
             <div class="cta-buttons">
                 <button id="launch-editor-btn" class="btn btn-primary">Open Editor &rarr;</button>
-                <a href="#" class="btn btn-secondary">Join Discord</a>
+                <a class="btn btn-secondary">Join Discord</a>
             </div>
         </main>
     </div>
@@ -40,12 +33,11 @@
     <div id="editor-view" class="view">
         <header class="top-bar">
             <div class="logo">
-                <img src="https://cdn.discordapp.com/attachments/1266995410795495487/1394358024193441865/savexfbg-removebg-preview.png?ex=6876849a&is=6875331a&hm=fa6e0b02caf96eaf38b7defe9d206655538b1e8c0224a15e0aab0b8dc6cb80ba&" alt="SaveXF Logo">
                 <span>SaveXF</span>
             </div>
             <nav class="main-nav">
-                <a href="#" id="nav-home-btn">Home</a>
-                <a href="#">Documentation</a>
+                <a id="nav-home-btn">Home</a>
+                <a>Documentation</a>
             </nav>
         </header>
 
@@ -86,6 +78,7 @@
 
             <div class="details-pane">
                 <div class="game-details" id="details-hoop-land">
+                    <h4 class="summary-title">Feature Summary</h4>
                     <div class="features-list-grid">
                         <div class="feature-item">
                             <h4>Player Identity</h4>
@@ -104,21 +97,11 @@
                             <p>Modify player contracts, including remaining years and salary.</p>
                         </div>
                     </div>
-                    <a href="#" class="btn btn-primary">Continue to Hoop Land Editor &rarr;</a>
+                    <a class="btn btn-primary">Continue to Hoop Land Editor &rarr;</a>
                 </div>
 
                 <div class="game-details" id="details-coming-soon">
-                     <div class="features-list-grid">
-                        <div class="feature-item">
-                            <h4>Player Editing</h4>
-                            <p>Modify player stats, traits, and personal details.</p>
-                        </div>
-                        <div class="feature-item">
-                            <h4>Team Management</h4>
-                            <p>Adjust team rosters, finances, and facilities.</p>
-                        </div>
-                    </div>
-                    <p>This editor is currently in development. Join the Discord for progress reports.</p>
+                     <p class="unavailable-text">This editor is currently unavailable. Join our Discord for progress and status updates.</p>
                 </div>
             </div>
         </main>

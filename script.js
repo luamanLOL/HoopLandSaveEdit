@@ -64,4 +64,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Deselect all by default so the pane is empty initially
     selectGame(null);
-}); 
+});
