@@ -89,7 +89,7 @@ body {
 .content-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 10rem 2rem 4rem;
+    padding: 30rem 2rem 4rem; /* UPDATED PADDING */
     text-align: center;
 }
 
@@ -205,8 +205,7 @@ h1 {
     animation: fadeIn 0.5s ease;
 }
 
-.unavailable-text,
-.game-details > p {
+.unavailable-text {
     color: var(--text-secondary);
     padding: 2rem 0;
 }
@@ -234,21 +233,9 @@ h1 {
     border: 1px solid var(--border);
     padding: 1rem 1.25rem;
     border-radius: 6px;
-}
-
-.feature-item h4 {
     font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
     color: var(--text-primary);
 }
-
-.feature-item p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-}
-
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(5px); }
