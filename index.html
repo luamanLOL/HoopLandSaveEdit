@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaveXF - Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-med: #2c2c2c;
+            --border-color: #444;
+            --text-light: #f0f0f0;
+            --text-dark: #a0a0a0;
+            --accent-orange: #ff9900;
+            --accent-orange-dark: #cc7a00;
+        }
+
+        html, body {
+            height: 100%;
+        }
+        body { 
+            font-family: 'VT323', monospace; 
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+            font-size: 20px;
+            image-rendering: pixelated;
+        }
+        .clickable:active { transform: translateY(2px); box-shadow: none; }
+        
+        #notification-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-med);
+            color: var(--text-light);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
+            z-index: 100;
+            transition: all 0.5s ease-in-out;
+            border: 2px solid var(--border-color);
+            box-shadow: 4px 4px 0px #000;
+        }
+        #notification-toast.show { bottom: 30px; }
+        #notification-toast.error { background-color: #991B1B; border-color: #F87171; }
+        
+        .loader {
+            border: 5px solid var(--border-color);
+            border-top: 5px solid var(--accent-orange);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .player-select-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background-color: var(--bg-med);
+            border: 2px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .player-select-btn:hover { background-color: #444; }
+
+        /* NEW PIXEL DESIGN */
+        .pixel-card {
+            background-color: var(--bg-med);
+            border: 2px solid var(--border-color);
+            padding: 1.5rem;
+            box-shadow: 4px 4px 0px #000;
+        }
+        .pixel-header {
+            font-size: 3rem;
+            color: var(--accent-orange);
+            text-shadow: 3px 3px 0 #000;
+            margin-bottom: 0.5rem;
+        }
+        .pixel-subheader {
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+        }
+        .pixel-btn {
+            background-color: var(--accent-orange);
+            color: #000;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            transition: all 0.1s ease-out;
+            cursor: pointer;
+        }
+        .pixel-btn:hover { background-color: #ffad33; }
+        .pixel-btn-subtle { background-color: var(--bg-med); color: var(--text-light); }
+        .pixel-btn-subtle:hover { background-color: #444; }
+        .pixel-btn-success { background-color: #22c55e; }
+        .pixel-btn-success:hover { background-color: #34d399; }
+        
+        .mod-input, .mod-select, .level-select {
+            background-color: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            padding: 0.25rem 0.5rem;
+            color: var(--text-light);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+        }
+        .mod-input { width: 100px; text-align: center; }
+        .mod-select { width: 160px; }
+        .level-select { width: 80px; }
+
+        .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 40; padding: 1rem; }
+        .modal-content { background-color: var(--bg-dark); border: 2px solid var(--border-color); box-shadow: 8px 8px 0px #000; padding: 1.5rem; width: 100%; max-width: 56rem; max-height: 90vh; overflow-y: auto; }
+        
+        .inspector-bar { background-color: var(--bg-med); padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 2px solid var(--border-color); }
+        .summary-bar-container { display: flex; flex-grow: 1; height: 28px; background-color: var(--bg-dark); padding: 3px; border: 2px solid #000; }
+        .summary-bar { flex-grow: 1; height: 100%; position: relative; overflow: visible; border-right: 2px solid var(--bg-med); }
+        .summary-bar:last-child { border-right: none; }
+        .summary-bar-fill { position: absolute; bottom: 0; left: 0; width: 100%; }
+        .summary-bar::after { content: ''; position: absolute; top: -3px; left: var(--potential-left, 0%); width: 3px; height: 5px; background-color: white; transform: translateX(-50%); }
+        .attr-progress-bar { width: 100%; height: 1.25rem; background-color: var(--bg-dark); border: 2px solid var(--border-color); position: relative; }
+        .attr-progress-potential, .attr-progress-fill { height: 100%; position: absolute; top: 0; left: 0; }
+        .attr-progress-potential { opacity: 0.4; }
+        .card-header { font-size: 1.75rem; font-weight: 600; margin-bottom: 1rem; color: var(--accent-orange); }
+    </style>
+</head>
+<body>
+
+    <div id="editor-container" class="w-full max-w-6xl mx-auto">
+
+        <!-- Screen 1: File Upload -->
+        <div id="file-upload-screen" class="w-full max-w-4xl mx-auto">
+            <h1 class="pixel-header text-center">SaveXF Editor</h1>
+            <p class="pixel-subheader text-center">Upload your save file to begin.</p>
+            <div id="file-drop-zone" class="pixel-card p-10 text-center cursor-pointer hover:border-orange-400 transition-colors">
+                <p class="text-xl font-semibold">Drag & Drop Your Save File Here</p>
+                <p class="text-slate-400 my-2">or</p>
+                <button id="select-file-btn" class="pixel-btn clickable">Select File</button>
+            </div>
+            <div id="loading-indicator" class="hidden flex-col items-center mt-8">
+                <div class="loader"></div>
+                <p class="mt-4 text-slate-300">Processing File...</p>
+            </div>
+            <input type="file" id="file-input" class="hidden" accept=".json">
+        </div>
+
+        <!-- Screen 2: Player Search -->
+        <div id="main-editor-screen" class="hidden w-full max-w-4xl mx-auto">
+            <h1 class="pixel-header text-center mb-8">Player Search</h1>
+            <div class="pixel-card p-6 space-y-4">
+                <div>
+                    <label for="league-select" class="block mb-2 text-lg font-medium text-slate-300">1. Select League</label>
+                    <select id="league-select" class="mod-select block w-full p-2.5">
+                        <option value="0">Pro League</option>
+                        <option value="1">College League</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="player-search" class="block mb-2 text-lg font-medium text-slate-300">2. Search by First Name (fn)</label>
+                    <div class="flex gap-4">
+                        <input type="text" id="player-search" class="mod-input block w-full p-2.5" placeholder="e.g., Michael">
+                        <button id="search-btn" class="pixel-btn clickable">Search</button>
+                    </div>
+                </div>
+            </div>
+            <div id="results-container" class="mt-8">
+                <h2 class="text-2xl font-bold mb-4">Results</h2>
+                <div id="results-output" class="pixel-card p-6 min-h-[100px] text-slate-300 whitespace-pre-wrap">
+                    Search results will appear here...
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Modification Screen -->
+        <div id="modification-screen" class="w-full max-w-5xl hidden">
+            <div class="flex justify-between items-center mb-8">
+                <button id="back-to-search-btn" class="pixel-btn pixel-btn-subtle text-lg clickable">&larr; Back to Search</button>
+                <h2 id="modification-title" class="pixel-header text-center">EDIT PLAYER</h2>
+                <div class="w-48 text-right">
+                     <button id="save-file-btn" class="pixel-btn pixel-btn-success text-xl clickable">Save Modded File</button>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div id="inspector-bars" class="space-y-3"></div>
+                <div class="pixel-card p-6">
+                    <h3 class="card-header">Player Info</h3>
+                    <div id="general-mods-container" class="w-full grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-base"></div>
+                </div>
+                <div class="pixel-card p-6">
+                    <h3 class="card-header">Advanced Mods</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button id="player-contract-btn" class="pixel-btn pixel-btn-subtle text-lg clickable text-left w-full"><span class="font-semibold">Player Contract</span><br><span class="text-sm text-slate-400">Change years, salary, etc.</span></button>
+                        <button id="player-tendencies-btn" class="pixel-btn pixel-btn-subtle text-lg clickable text-left w-full"><span class="font-semibold">Player Tendencies</span><br><span class="text-sm text-slate-400">Adjust strengths and weaknesses.</span></button>
+                    </div>
+                </div>
+                <div id="game-economy-card" class="pixel-card p-6">
+                    <h3 class="card-header">Game Economy</h3>
+                    <div id="economy-mods-container" class="space-y-4"></div>
+                </div>
+                <div class="pixel-card p-4">
+                    <h3 class="text-xl font-bold text-slate-400">Coming Soon</h3>
+                    <p class="text-sm text-slate-500">Other features like coach and league-wide editing are planned.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="attribute-editor-modal" class="modal-backdrop hidden"></div>
+    <div id="skills-editor-modal" class="modal-backdrop hidden"></div>
+    <div id="contract-editor-modal" class="modal-backdrop hidden"></div>
+    <div id="tendencies-editor-modal" class="modal-backdrop hidden"></div>
+    
+    <div id="notification-toast"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let saveData = null, foundPlayers = [], selectedPlayerObject = null, selectedLeagueIndex = 0;
+            const fileUploadScreen = document.getElementById('file-upload-screen'), mainEditorScreen = document.getElementById('main-editor-screen'), modificationScreen = document.getElementById('modification-screen');
+            const fileDropZone = document.getElementById('file-drop-zone'), selectFileBtn = document.getElementById('select-file-btn'), fileInput = document.getElementById('file-input'), loadingIndicator = document.getElementById('loading-indicator');
+            const notificationToast = document.getElementById('notification-toast'), leagueSelect = document.getElementById('league-select'), playerSearchInput = document.getElementById('player-search');
+            const searchBtn = document.getElementById('search-btn'), resultsOutput = document.getElementById('results-output'), backToSearchBtn = document.getElementById('back-to-search-btn'), saveFileBtn = document.getElementById('save-file-btn');
+            const attributeEditorModal = document.getElementById('attribute-editor-modal'), skillsEditorModal = document.getElementById('skills-editor-modal'), contractEditorModal = document.getElementById('contract-editor-modal'), tendenciesEditorModal = document.getElementById('tendencies-editor-modal');
+            const inspectorBarsContainer = document.getElementById('inspector-bars'), generalModsContainer = document.getElementById('general-mods-container'), economyModsContainer = document.getElementById('economy-mods-container');
+            const playerContractBtn = document.getElementById('player-contract-btn'), playerTendenciesBtn = document.getElementById('player-tendencies-btn');
+            const ATTRIBUTE_CATEGORIES = { Finishing: { LAY: "Layup", DNK: "Dunking", INS: "Inside Shooting" }, Shooting: { MID: "Mid Range", TPT: "Three Point", FTS: "Free Throw" }, Creating: { DRB: "Dribbling", PAS: "Passing", ORE: "Offensive Rebounding" }, Defense: { DRE: "Defensive Rebounding", STL: "Stealing", BLK: "Blocking" }, Physicals: { STR: "Strength", SPD: "Speed", STM: "Stamina" } };
+            const SKILL_CATEGORIES = { Finishing: { HIG: "Highlight Reel", CRA: "Crafty", SOF: "Soft Touch", TEA: "Tear Dropper", BUL: "Bully", DUN: "Dunk Artist" }, Shooting: { SPO: "Sparkplug", CLU: "Clutch Gene", TWO: "Spot Up", VOL: "Volume Shooter", LIM: "Limitless", HOT: "Unfazed" }, Creating: { DIM: "Dimer", CHE: "Chef", UNF: "Cleanup Crew", SNA: "Step Dancer", FOO: "Foot Surgeon", BAL: "Hot Potato" }, Defense: { CLA: "Clamps", LOC: "Locked In", MAG: "Magnet", CLE: "Two Way", STE: "Ball Hawk", SPA: "Snatcher" } };
+
+            function showScreen(screenToShow) { [fileUploadScreen, mainEditorScreen, modificationScreen].forEach(s => s.classList.add('hidden')); screenToShow.classList.remove('hidden'); }
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => fileDropZone.addEventListener(eventName, preventDefaults, false));
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+            fileDropZone.addEventListener('dragenter', () => fileDropZone.classList.add('border-orange-400'));
+            fileDropZone.addEventListener('dragleave', () => fileDropZone.classList.remove('border-orange-400'));
+            fileDropZone.addEventListener('drop', (e) => { fileDropZone.classList.remove('border-orange-400'); handleFile(e.dataTransfer.files[0]); });
+            searchBtn.addEventListener('click', performSearch);
+            backToSearchBtn.addEventListener('click', () => showScreen(mainEditorScreen));
+            saveFileBtn.addEventListener('click', downloadSaveFile);
+
+            function handleFile(file) {
+                if (!file) return;
+                fileDropZone.style.display = 'none';
+                loadingIndicator.style.display = 'flex';
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const fileContent = event.target.result.trim();
+                        saveData = JSON.parse(fileContent);
+                        showToast('File processed successfully!');
+                        showScreen(mainEditorScreen);
+                    } catch (error) {
+                        showToast('Error: Could not parse save file. Is it corrupted?', 'error');
+                        fileDropZone.style.display = 'block';
+                        loadingIndicator.style.display = 'none';
+                    }
+                };
+                reader.onerror = () => {
+                    showToast('Error: Could not read the file.', 'error');
+                    fileDropZone.style.display = 'block';
+                    loadingIndicator.style.display = 'none';
+                };
+                reader.readAsText(file);
+            }
+
+            function performSearch() {
+                if (!saveData) { showToast('No save data loaded.', 'error'); return; }
+                selectedLeagueIndex = parseInt(leagueSelect.value);
+                const searchTerm = playerSearchInput.value.trim().toLowerCase();
+                if (!searchTerm) { showToast('Please enter a first name to search.', 'error'); return; }
+                resultsOutput.innerHTML = `<p class="text-slate-400">Searching...</p>`;
+                foundPlayers = [];
+                try {
+                    const league = saveData.seasonLeagues[selectedLeagueIndex];
+                    const allTeams = [...(league.teams || []), ...(league.starTeams || [])];
+                    for (const team of allTeams) {
+                        for (const player of (team.roster || [])) {
+                            if (player.fn && player.fn.toLowerCase() === searchTerm) {
+                                foundPlayers.push({ teamName: team.name || 'N/A', playerInfo: player });
+                            }
+                        }
+                    }
+                    displayResults();
+                } catch (e) { resultsOutput.textContent = 'An error occurred while searching.'; console.error(e); }
+            }
+
+            function displayResults() {
+                resultsOutput.innerHTML = '';
+                if (foundPlayers.length === 0) {
+                    resultsOutput.textContent = `No players found with the first name "${playerSearchInput.value}".`;
+                } else if (foundPlayers.length === 1) {
+                    selectPlayer(foundPlayers[0].playerInfo);
+                } else {
+                    resultsOutput.innerHTML = `<p class="text-slate-300 mb-4">Found ${foundPlayers.length} players. Please select one:</p>`;
+                    foundPlayers.forEach((p, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'player-select-btn';
+                        btn.dataset.playerIndex = index;
+                        btn.textContent = `${p.playerInfo.fn} ${p.playerInfo.ln || ''} (Team: ${p.teamName})`;
+                        resultsOutput.appendChild(btn);
+                    });
+                }
+            }
+
+            resultsOutput.addEventListener('click', (e) => {
+                if (e.target && e.target.matches('.player-select-btn')) {
+                    const playerIndex = parseInt(e.target.dataset.playerIndex);
+                    selectPlayer(foundPlayers[playerIndex].playerInfo);
+                }
+            });
+
+            function selectPlayer(playerObject) {
+                selectedPlayerObject = playerObject;
+                populateEditors();
+                showScreen(modificationScreen);
+            }
+
+            function populateEditors() {
+                if (!selectedPlayerObject) return;
+                document.getElementById('modification-title').textContent = `EDITING: ${selectedPlayerObject.fn || ''} ${selectedPlayerObject.ln || ''}`;
+                inspectorBarsContainer.innerHTML = '';
+                inspectorBarsContainer.appendChild(createAttributeInspectorBar());
+                inspectorBarsContainer.appendChild(createSkillsInspectorBar());
+                populateGeneralMods();
+                populateEconomyMods();
+            }
+            
+            function createRow(label, input) { const row = document.createElement('label'); row.className = 'flex items-center justify-between'; row.innerHTML = `<span class="font-semibold text-slate-300">${label}</span>`; row.appendChild(input); return row; };
+
+            function populateGeneralMods() {
+                generalModsContainer.innerHTML = '';
+                const createInput = (mod, type, value, widthClass = 'w-40') => { const i = document.createElement('input'); i.type = type; i.className = `mod-input ${widthClass}`; i.dataset.mod = mod; i.value = value; return i; };
+                const createSelect = (mod, options, selectedVal) => { const s = document.createElement('select'); s.className = 'mod-select'; s.dataset.mod = mod; s.innerHTML = options; s.value = selectedVal; return s; };
+                
+                generalModsContainer.appendChild(createRow('First Name', createInput('fn', 'text', selectedPlayerObject.fn || '')));
+                generalModsContainer.appendChild(createRow('Last Name', createInput('ln', 'text', selectedPlayerObject.ln || '')));
+                generalModsContainer.appendChild(createRow('Age', createInput('age', 'number', selectedPlayerObject.age || '', 'w-24')));
+                const heightOpts = Array.from({length: 49}, (_, i) => 48 + i).map(inch => `<option value="${inch}">${Math.floor(inch/12)}' ${inch%12}"</option>`).join('');
+                generalModsContainer.appendChild(createRow('Height', createSelect('ht', heightOpts, selectedPlayerObject.ht)));
+                generalModsContainer.appendChild(createRow('Weight (lbs)', createInput('wt', 'number', selectedPlayerObject.wt || '', 'w-24')));
+                const posOpts = Object.entries({1: 'PG', 2: 'SG', 3: 'SF', 4: 'PF', 5: 'C'}).map(([val, name]) => `<option value="${val}">${name}</option>`).join('');
+                generalModsContainer.appendChild(createRow('Position', createSelect('pos', posOpts, selectedPlayerObject.pos)));
+                const potOpts = [1,2,3,4,5].map(s => `<option value="${s*2}">${'★'.repeat(s)}</option>`).join('');
+                generalModsContainer.appendChild(createRow('Potential', createSelect('pot', potOpts, selectedPlayerObject.pot)));
+                generalModsContainer.appendChild(createRow('Build Name', createInput('arc', 'text', selectedPlayerObject.arc || '')));
+            }
+            
+            function populateEconomyMods() {
+                economyModsContainer.innerHTML = '';
+                const career = saveData.seasonLeagues[selectedLeagueIndex]?.career;
+                if (!career) return;
+                
+                const coinsContainer = document.createElement('div');
+                const coinsInput = document.createElement('input'); coinsInput.type = 'number'; coinsInput.className = 'mod-input w-40'; coinsInput.dataset.mod = 'coins'; coinsInput.value = career.coins || 0;
+                coinsContainer.appendChild(createRow('Coins', coinsInput));
+                const coinsNote = document.createElement('p'); coinsNote.className = 'text-xs text-slate-400 text-right mt-1'; coinsNote.textContent = 'Recommended: under 1,000,000';
+                coinsContainer.appendChild(coinsNote);
+                economyModsContainer.appendChild(coinsContainer);
+
+                const fansInput = document.createElement('input'); fansInput.type = 'number'; fansInput.className = 'mod-input w-40'; fansInput.dataset.mod = 'fans'; fansInput.value = career.fans || 0;
+                economyModsContainer.appendChild(createRow('Fans', fansInput));
+            }
+
+            function applyGeneralMods() {
+                if (!selectedPlayerObject) return;
+                generalModsContainer.querySelectorAll('[data-mod]').forEach(input => {
+                    const modType = input.dataset.mod; let value = input.value;
+                    if (input.type === 'number' || input.tagName === 'SELECT') value = parseInt(value);
+                    if (value || value === 0) selectedPlayerObject[modType] = value;
+                });
+            }
+            
+            function applyEconomyMods() {
+                const career = saveData.seasonLeagues[selectedLeagueIndex]?.career;
+                if (!career) return;
+                economyModsContainer.querySelectorAll('[data-mod]').forEach(input => {
+                    const modType = input.dataset.mod;
+                    const value = parseInt(input.value);
+                    if (!isNaN(value)) career[modType] = value;
+                });
+            }
+            
+            function downloadSaveFile() {
+                if (!saveData) { showToast('No data to save!', 'error'); return; }
+                applyGeneralMods();
+                applyEconomyMods();
+                try {
+                    const dataStr = JSON.stringify(saveData);
+                    const dataBlob = new Blob([dataStr], {type: "application/octet-stream"});
+                    const url = URL.createObjectURL(dataBlob);
+                    const a = document.createElement('a'); a.href = url;
+                    a.download = "modded_save_by_SaveXF";
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('File saved successfully!');
+                } catch (e) { showToast('Failed to save file.', 'error'); console.error(e); }
+            }
+
+            let toastTimeout;
+            function showToast(message, type = 'success') {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                notificationToast.textContent = message;
+                notificationToast.className = 'show';
+                if (type === 'error') notificationToast.classList.add('error');
+                toastTimeout = setTimeout(() => { notificationToast.classList.remove('show'); }, 3000);
+            }
+            
+            function createAttributeInspectorBar() {
+                const bar = document.createElement('div');
+                bar.className = 'inspector-bar';
+                bar.innerHTML = `<h3 class="text-lg font-bold">ATTRIBUTES</h3><div class="summary-bar-container"></div><button class="pixel-btn pixel-btn-subtle clickable">Edit</button>`;
+                const summaryContainer = bar.querySelector('.summary-bar-container');
+                if (selectedPlayerObject && selectedPlayerObject.attributes) {
+                    const allAttrs = Object.values(ATTRIBUTE_CATEGORIES).flatMap(cat => Object.keys(cat));
+                    allAttrs.forEach(attrKey => {
+                        const [currentVal, potentialVal] = selectedPlayerObject.attributes[attrKey] || [0, 0];
+                        const barDiv = document.createElement('div'); barDiv.className = 'summary-bar';
+                        const fillDiv = document.createElement('div'); fillDiv.className = 'summary-bar-fill';
+                        fillDiv.style.height = `${(currentVal / 20) * 100}%`;
+                        fillDiv.style.backgroundColor = getAttributeColor(attrKey);
+                        barDiv.style.setProperty('--potential-left', `${(potentialVal / 20) * 100}%`);
+                        barDiv.appendChild(fillDiv);
+                        summaryContainer.appendChild(barDiv);
+                    });
+                }
+                bar.querySelector('button').onclick = () => { populateAttributeEditor(); attributeEditorModal.classList.remove('hidden'); };
+                return bar;
+            }
+
+            function createSkillsInspectorBar() {
+                const bar = document.createElement('div');
+                bar.className = 'inspector-bar';
+                bar.innerHTML = `<h3 class="text-lg font-bold">SKILLS & BADGES</h3><p class="text-slate-300 text-lg">${(selectedPlayerObject.skills || []).filter(s => s.equipped).length} / 24 Equipped</p><button class="pixel-btn pixel-btn-subtle clickable">Edit</button>`;
+                bar.querySelector('button').onclick = () => { populateSkillsEditor(); skillsEditorModal.classList.remove('hidden'); };
+                return bar;
+            }
+
+            function getAttributeColor(attrKey) {
+                if (Object.keys(ATTRIBUTE_CATEGORIES.Finishing).includes(attrKey)) return '#F97316';
+                if (Object.keys(ATTRIBUTE_CATEGORIES.Shooting).includes(attrKey)) return '#F59E0B';
+                if (Object.keys(ATTRIBUTE_CATEGORIES.Creating).includes(attrKey)) return '#84CC16';
+                if (Object.keys(ATTRIBUTE_CATEGORIES.Defense).includes(attrKey)) return '#EF4444';
+                if (Object.keys(ATTRIBUTE_CATEGORIES.Physicals).includes(attrKey)) return '#3B82F6';
+                return '#9CA3AF';
+            }
+
+            function populateAttributeEditor() {
+                attributeEditorModal.innerHTML = `<div class="modal-content max-w-5xl"><h3 class="pixel-header text-center">EDIT ATTRIBUTES</h3><div id="attribute-categories" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 text-lg"></div><div class="flex justify-between mt-6"><button id="attr-max-all" class="pixel-btn clickable">Max All</button><div><button id="attr-cancel" class="pixel-btn pixel-btn-subtle clickable mr-2">Cancel</button><button id="attr-apply" class="pixel-btn pixel-btn-success clickable">Apply</button></div></div></div>`;
+                const container = attributeEditorModal.querySelector('#attribute-categories');
+                for (const [category, attrs] of Object.entries(ATTRIBUTE_CATEGORIES)) {
+                    const catDiv = document.createElement('div'); catDiv.className = 'space-y-3 bg-slate-800 p-3'; catDiv.innerHTML = `<h4 class="text-lg font-bold mb-2" style="color: ${getAttributeColor(Object.keys(attrs)[0])}">${category}</h4>`;
+                    for (const [attrKey, attrName] of Object.entries(attrs)) {
+                        const [currentVal, potentialVal] = selectedPlayerObject.attributes[attrKey] || [0, 0];
+                        const itemDiv = document.createElement('div'); const label = document.createElement('label'); label.className = 'flex items-center justify-between font-semibold'; label.innerHTML = `<span>${attrName}</span>`;
+                        const inputsContainer = document.createElement('div'); inputsContainer.className = 'flex items-center gap-2';
+                        const currentInput = document.createElement('input'); currentInput.type = 'number'; currentInput.className = 'mod-input'; currentInput.dataset.attr = attrKey; currentInput.dataset.type = 'current'; currentInput.min = 1; currentInput.max = 20; currentInput.value = currentVal;
+                        const potentialInput = document.createElement('input'); potentialInput.type = 'number'; potentialInput.className = 'mod-input'; potentialInput.dataset.attr = attrKey; potentialInput.dataset.type = 'potential'; potentialInput.min = 1; potentialInput.max = 20; potentialInput.value = potentialVal;
+                        const progressBar = document.createElement('div'); progressBar.className = 'attr-progress-bar mt-1'; const progressPotential = document.createElement('div'); progressPotential.className = 'attr-progress-potential'; const progressFill = document.createElement('div'); progressFill.className = 'attr-progress-fill';
+                        const updateBars = () => { let current = parseInt(currentInput.value) || 0; let potential = parseInt(potentialInput.value) || 0; if (current > potential) { current = potential; currentInput.value = potential; } progressPotential.style.width = `${(potential / 20) * 100}%`; progressFill.style.width = `${(current / 20) * 100}%`; progressPotential.style.backgroundColor = getAttributeColor(attrKey); progressFill.style.backgroundColor = getAttributeColor(attrKey); };
+                        updateBars(); progressBar.appendChild(progressPotential); progressBar.appendChild(progressFill); inputsContainer.appendChild(currentInput); inputsContainer.appendChild(potentialInput); label.appendChild(inputsContainer); itemDiv.appendChild(label); itemDiv.appendChild(progressBar); catDiv.appendChild(itemDiv);
+                        currentInput.addEventListener('input', updateBars); potentialInput.addEventListener('input', updateBars);
+                    }
+                    container.appendChild(catDiv);
+                }
+                attributeEditorModal.querySelector('#attr-cancel').onclick = () => attributeEditorModal.classList.add('hidden');
+                attributeEditorModal.querySelector('#attr-max-all').onclick = () => { attributeEditorModal.querySelectorAll('input[type="number"]').forEach(input => { input.value = 20; input.dispatchEvent(new Event('input')); }); };
+                attributeEditorModal.querySelector('#attr-apply').onclick = () => {
+                    attributeEditorModal.querySelectorAll('input[type="number"]').forEach(input => {
+                        const attrKey = input.dataset.attr; const type = input.dataset.type; const value = parseInt(input.value);
+                        if (type === 'current') selectedPlayerObject.attributes[attrKey][0] = value;
+                        else selectedPlayerObject.attributes[attrKey][1] = value;
+                    });
+                    attributeEditorModal.classList.add('hidden');
+                    populateEditors(); showToast('Attributes applied!');
+                };
+            }
+            
+            function populateSkillsEditor() {
+                skillsEditorModal.innerHTML = `<div class="modal-content"><h3 class="pixel-header text-center">EDIT SKILLS & BADGES</h3><div id="skill-categories" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6 text-lg"></div><div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"><div class="flex gap-2 flex-wrap justify-center"><button id="skill-select-all" class="pixel-btn clickable">Select All</button><div class="flex items-center gap-1 bg-slate-700 p-1"><span class="text-lg px-2">Set All:</span><button data-level="1" class="set-level-btn pixel-btn pixel-btn-subtle text-lg clickable">1</button><button data-level="2" class="set-level-btn pixel-btn pixel-btn-subtle text-lg clickable">2</button><button data-level="3" class="set-level-btn pixel-btn pixel-btn-subtle text-lg clickable">3</button></div></div><div><button id="skill-cancel" class="pixel-btn pixel-btn-subtle clickable mr-2">Cancel</button><button id="skill-apply" class="pixel-btn pixel-btn-success clickable">Apply</button></div></div></div>`;
+                const container = skillsEditorModal.querySelector('#skill-categories');
+                const playerSkillsMap = new Map((selectedPlayerObject.skills || []).map(s => [s.id, s]));
+                for (const [category, skills] of Object.entries(SKILL_CATEGORIES)) {
+                    const catDiv = document.createElement('div'); catDiv.innerHTML = `<h4 class="text-2xl font-bold mb-3" style="color:${getAttributeColor(Object.keys(ATTRIBUTE_CATEGORIES).find(c => c.startsWith(category.slice(0,2)))) || '#fff'}">${category}</h4>`; const skillList = document.createElement('div'); skillList.className = 'space-y-3';
+                    for (const [skillId, skillName] of Object.entries(skills)) {
+                        const currentSkill = playerSkillsMap.get(skillId); const isChecked = currentSkill ? currentSkill.equipped : false; const currentLevel = currentSkill ? currentSkill.level : 1;
+                        const itemDiv = document.createElement('div'); itemDiv.dataset.skillItem = skillId; const controlRow = document.createElement('div'); controlRow.className = 'flex items-center justify-start gap-2';
+                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'mod-checkbox flex-shrink-0 w-5 h-5'; checkbox.value = skillId; checkbox.checked = isChecked;
+                        const nameSpan = document.createElement('span'); nameSpan.className = 'flex-grow font-semibold'; nameSpan.textContent = skillName;
+                        const select = document.createElement('select'); select.className = 'level-select flex-shrink-0'; select.innerHTML = `<option value="1" ${currentLevel === 1 ? 'selected' : ''}>Lvl 1</option><option value="2" ${currentLevel === 2 ? 'selected' : ''}>Lvl 2</option><option value="3" ${currentLevel === 3 ? 'selected' : ''}>Lvl 3</option>`;
+                        controlRow.appendChild(checkbox); controlRow.appendChild(nameSpan); controlRow.appendChild(select); 
+                        itemDiv.appendChild(controlRow); skillList.appendChild(itemDiv);
+                    }
+                    catDiv.appendChild(skillList); container.appendChild(catDiv);
+                }
+                skillsEditorModal.querySelector('#skill-cancel').onclick = () => skillsEditorModal.classList.add('hidden');
+                skillsEditorModal.querySelector('#skill-select-all').onclick = () => { const allCheckboxes = skillsEditorModal.querySelectorAll('input[type="checkbox"]'); const allSelected = [...allCheckboxes].every(cb => cb.checked); allCheckboxes.forEach(cb => cb.checked = !allSelected); };
+                skillsEditorModal.querySelectorAll('.set-level-btn').forEach(button => { button.addEventListener('click', (e) => { const levelToSet = e.target.dataset.level; skillsEditorModal.querySelectorAll('.level-select').forEach(sel => sel.value = levelToSet); }); });
+                skillsEditorModal.querySelector('#skill-apply').onclick = () => {
+                    const newSkills = [];
+                    skillsEditorModal.querySelectorAll('[data-skill-item]').forEach(item => {
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        const select = item.querySelector('select.level-select');
+                        newSkills.push({ id: checkbox.value, xp: 0, level: parseInt(select.value), equipped: checkbox.checked });
+                    });
+                    selectedPlayerObject.skills = newSkills;
+                    skillsEditorModal.classList.add('hidden');
+                    populateEditors(); showToast('Skills applied!');
+                };
+            }
+
+            // --- NEWLY FUNCTIONAL BUTTONS ---
+            playerContractBtn.addEventListener('click', () => {
+                if (!selectedPlayerObject) return;
+                contractEditorModal.innerHTML = `
+                    <div class="modal-content max-w-lg">
+                        <h3 class="pixel-header text-center">Edit Contract</h3>
+                        <div class="space-y-4 text-xl">
+                            <label class="flex items-center justify-between"><span>Years (yrs)</span><input type="number" id="contract-yrs" class="mod-input" value="${selectedPlayerObject.contract.yrs}"></label>
+                            <label class="flex items-center justify-between"><span>Salary (sal)</span><input type="number" id="contract-sal" class="mod-input" value="${selectedPlayerObject.contract.sal}"></label>
+                            <p class="text-sm text-slate-400 text-right -mt-2">Note: 1 = $1M</p>
+                            <label class="flex items-center justify-between"><span>No Trade Clause</span><select id="contract-noTrd" class="mod-select"><option value="true" ${selectedPlayerObject.contract.noTrd ? 'selected' : ''}>Yes</option><option value="false" ${!selectedPlayerObject.contract.noTrd ? 'selected' : ''}>No</option></select></label>
+                        </div>
+                        <div class="flex justify-end mt-6">
+                            <button class="pixel-btn pixel-btn-subtle clickable mr-2">Cancel</button>
+                            <button class="pixel-btn pixel-btn-success clickable">Apply</button>
+                        </div>
+                    </div>`;
+                contractEditorModal.classList.remove('hidden');
+                contractEditorModal.querySelector('.pixel-btn-subtle').onclick = () => contractEditorModal.classList.add('hidden');
+                contractEditorModal.querySelector('.pixel-btn-success').onclick = () => {
+                    selectedPlayerObject.contract.yrs = parseInt(document.getElementById('contract-yrs').value);
+                    selectedPlayerObject.contract.sal = parseInt(document.getElementById('contract-sal').value);
+                    selectedPlayerObject.contract.noTrd = document.getElementById('contract-noTrd').value === 'true';
+                    contractEditorModal.classList.add('hidden');
+                    showToast('Contract updated!');
+                };
+            });
+
+            playerTendenciesBtn.addEventListener('click', () => {
+                if (!selectedPlayerObject) return;
+                let tendenciesHTML = '';
+                for (const [key, value] of Object.entries(selectedPlayerObject.tendencies)) {
+                    tendenciesHTML += `
+                        <label class="flex items-center justify-between">
+                            <span class="font-semibold capitalize">${key}</span>
+                            <select class="mod-select tendency-select" data-key="${key}">
+                                <option value="5" ${value >= 0 ? 'selected' : ''}>Good</option>
+                                <option value="-5" ${value < 0 ? 'selected' : ''}>Bad</option>
+                            </select>
+                        </label>`;
+                }
+                tendenciesEditorModal.innerHTML = `
+                    <div class="modal-content max-w-2xl">
+                        <h3 class="pixel-header text-center">Edit Tendencies</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-xl">${tendenciesHTML}</div>
+                        <div class="flex justify-between mt-6">
+                            <button class="pixel-btn clickable">All Good</button>
+                            <div>
+                                <button class="pixel-btn pixel-btn-subtle clickable mr-2">Cancel</button>
+                                <button class="pixel-btn pixel-btn-success clickable">Apply</button>
+                            </div>
+                        </div>
+                    </div>`;
+                tendenciesEditorModal.classList.remove('hidden');
+                tendenciesEditorModal.querySelector('.pixel-btn-subtle').onclick = () => tendenciesEditorModal.classList.add('hidden');
+                tendenciesEditorModal.querySelector('.pixel-btn.clickable').onclick = () => {
+                    tendenciesEditorModal.querySelectorAll('.tendency-select').forEach(sel => sel.value = '5');
+                };
+                tendenciesEditorModal.querySelector('.pixel-btn-success').onclick = () => {
+                    tendenciesEditorModal.querySelectorAll('.tendency-select').forEach(sel => {
+                        selectedPlayerObject.tendencies[sel.dataset.key] = parseInt(sel.value);
+                    });
+                    tendenciesEditorModal.classList.add('hidden');
+                    showToast('Tendencies updated!');
+                };
+            });
+        });
+    </script>
+</body>
+</html>
