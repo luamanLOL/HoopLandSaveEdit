@@ -1,23 +1,21 @@
 # SaveXF Editor
 
-SaveXF Editor is a web-based tool for editing save files from the game "SaveXF". It allows you to modify various aspects of your save file, including player attributes, skills, contracts, and game economy.
+SaveXF Editor is a web-based tool for editing save files from the game "HoopLand". It allows you to modify various aspects of your save file, including player attributes, skills, contracts, and game economy.
 
 ## Features
 
 - **Player Editing**: Search for players by first name and edit their general information, attributes, skills, and tendencies.
 - **Contract Modification**: Change player contract years, salary, and no-trade clause status.
 - **Economy Editing**: Modify your career coins and fans.
-- **Drag and Drop**: Easily upload your save file by dragging and dropping it into the editor.
 - **Download Modified Save**: Download your modified save file with a single click.
 
 ## Setup
 
-There is no special setup required to use the SaveXF Editor. Simply open the `index.html` file in your web browser.
+There is no special setup required to use the SaveXF Editor. Simply drop you file and enter the first name.
 
 ## Usage
 
 1.  **Upload Save File**:
-    *   Open the `index.html` file in a web browser.
     *   Drag and drop your save file (in `.json` format) onto the designated area, or click the "Select File" button to choose a file from your computer.
 
 2.  **Search for a Player**:
