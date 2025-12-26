@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League Settings Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Exo+2:wght@400;600;700&family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../transition.css">
+</head>
+<body>
+<button id="back-to-hub-btn" class="back-button" style="margin-bottom: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; background: none; border: none; color: white; font-family: inherit;">
+    <span>←</span> <span>Back to Dashboard</span>
+</button>
+    <div class="container">
+        <h1>League Settings</h1>
+        
+
+        <div class="main-content">
+            <div class="misc-card">
+                <h2>Misc</h2>
+                 <div class="form-grid">
+                    <div style="grid-column: 1 / span 2;">
+                        <label for="leagueName">League Name</label><input type="text" id="leagueName">
+                        <label for="shortName" style="margin-top: 1.5rem;">Short Name</label><input type="text" id="shortName">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="switch-container">
+                        <label for="regression">Regression</label>
+                        <input type="checkbox" id="regression">
+                    </div>
+                    <div class="switch-container">
+                        <label for="injuries">Injuries</label>
+                        <input type="checkbox" id="injuries">
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-card">
+                <form id="league-settings-form">
+                    <div class="form-section">
+                        <legend class="collapsible"><span>Gameplay Sliders</span><span class="collapsible-indicator">&#x276F;</span></legend>
+                        <div class="collapsible-content form-grid"></div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <legend class="collapsible"><span>Simulation Sliders</span><span class="collapsible-indicator">&#x276F;</span></legend>
+                        <div class="collapsible-content form-grid"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <legend class="collapsible"><span>Difficulty</span><span class="collapsible-indicator">&#x276F;</span></legend>
+                        <div class="collapsible-content form-grid"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <legend class="collapsible"><span>Divisions</span><span class="collapsible-indicator">&#x276F;</span></legend>
+                        <div class="collapsible-content form-grid"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <legend class="collapsible"><span>Media</span><span class="collapsible-indicator">&#x276F;</span></legend>
+                        <div class="collapsible-content"><ul id="media-list"></ul></div>
+                    </div>
+
+                    
+
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <script src="../db.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

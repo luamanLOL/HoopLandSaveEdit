@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RB Save Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="pixel-modal" id="view-upload">
+        <h2 class="modal-title">Upload Your Save File</h2>
+
+        <div class="drop-zone" id="drop-zone">
+            <div class="pixel-cloud">
+                 <svg viewBox="0 0 24 24">
+                    <path d="M18,10A6,6,0,0,0,7.2,8.6,4,4,0,0,0,8,16H18a4,4,0,0,0,0-8Zm-5,8V14h2l-3-4-3,4h2v4Z"/>
+                </svg>
+            </div>
+
+            <p class="drop-text">Drag & Drop your save file here<br>or click to browse</p>
+            
+            <button class="pixel-btn brown-btn" id="select-btn">SELECT FILE</button>
+            
+            <div style="margin-top: 15px;">
+                <p class="sub-text" style="margin-bottom: 5px;">OR</p>
+                <button class="pixel-btn brown-btn sm-btn" id="manual-btn">PASTE SAVE</button>
+            </div>
+
+            <input type="file" id="file-input" accept=".ini" hidden>
+            <p class="sub-text">Supported: .ini</p>
+        </div>
+
+        <div class="manual-zone hidden" id="manual-zone">
+            <p class="drop-text">Paste Save Data:</p>
+            <textarea id="manual-input" class="pixel-textarea" placeholder="Paste content here..."></textarea>
+            
+            <div class="action-row">
+                <button class="pixel-btn brown-btn" id="load-text-btn">LOAD SAVE</button>
+                <button class="pixel-btn red-btn" id="cancel-manual-btn">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-editor" class="pixel-modal editor-modal hidden">
+        <div class="editor-layout">
+            <div class="sidebar-tabs">
+                <div class="tab-header">EDITOR MENU</div>
+                
+                <button class="pixel-btn tab-btn special-btn" data-tab="tab-qb">★ QB MODE</button>
+                
+                <div class="tab-divider"></div>
+
+                <button class="pixel-btn tab-btn active" data-tab="tab-general">GENERAL</button>
+                <button class="pixel-btn tab-btn" data-tab="tab-roster">ROSTER</button>
+                
+                <button class="pixel-btn tab-btn" data-tab="tab-team">TEAM EDIT</button>
+                <button class="pixel-btn tab-btn" data-tab="tab-league">LEAGUE SETTINGS</button>
+                <button class="pixel-btn tab-btn" data-tab="tab-fa">FREE AGENTS</button>
+                <button class="pixel-btn tab-btn" data-tab="tab-schedule">SCHEDULE</button>
+                
+                <div class="spacer"></div>
+                <button class="pixel-btn red-btn" id="exit-editor-btn">EXIT EDITOR</button>
+            </div>
+
+            <div class="content-area">
+                
+                <div id="tab-qb" class="tab-content">
+                    <h3 class="panel-title" style="color: #f1c40f !important;">EXPERIMENTAL: QB MODE</h3>
+                    
+                    <div class="warning-box">
+                        <p class="warning-title">⚠️ DEVELOPER FEATURE</p>
+                        <p>This is an unreleased game mode. It was not intended for public use.</p>
+                        <p><strong>Expect glitches, crashes, or data instability.</strong></p>
+                    </div>
+
+                    <div class="qb-toggle-container">
+                        <label class="switch-label">ENABLE QB MODE</label>
+                        <label class="pixel-switch">
+                            <input type="checkbox" id="qb-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="instructions-box">
+                        <h4>HOW TO INSTALL</h4>
+                        <ol>
+                            <li>Enable the toggle above.</li>
+                            <li>Click "EXPORT SAVEFILE" on the General Tab.</li>
+                            <li>Open your device's file manager.</li>
+                            <li>Replace the contents of <code>backup_savedata.ini</code> with your new file.</li>
+                            <li>Open Retro Bowl > Save Slots > Tap "RETRO BOWL" logo 5 times to Restore Backup.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div id="tab-general" class="tab-content active">
+                    <h3 class="panel-title">FRANCHISE OVERVIEW</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>FIRST NAME</label><input type="text" id="gen-fname" class="pixel-input">
+                        </div>
+                        <div class="form-group">
+                            <label>LAST NAME</label><input type="text" id="gen-lname" class="pixel-input">
+                        </div>
+                        <div class="form-group">
+                            <label>COACHING CREDITS</label><input type="number" id="gen-cc" class="pixel-input">
+                        </div>
+                        <div class="form-group">
+                            <label>FANS (%)</label><input type="number" id="gen-fans" class="pixel-input" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>SALARY CAP ($M)</label><input type="number" id="gen-cap" class="pixel-input">
+                        </div>
+                        <div class="form-group">
+                            <label>ROSTER SIZE</label>
+                            <input type="number" id="gen-roster-size" class="pixel-input">
+                        </div>
+
+                        <div class="form-group full-width section-header">FACILITIES (1-10)</div>
+                        <div class="slider-row">
+                            <label>STADIUM</label>
+                            <input type="range" id="fac-stadium" min="1" max="10" class="pixel-slider">
+                            <span id="val-stadium">1</span>
+                        </div>
+                        <div class="slider-row">
+                            <label>TRAINING</label>
+                            <input type="range" id="fac-training" min="1" max="10" class="pixel-slider">
+                            <span id="val-training">1</span>
+                        </div>
+                        <div class="slider-row">
+                            <label>REHAB</label>
+                            <input type="range" id="fac-rehab" min="1" max="10" class="pixel-slider">
+                            <span id="val-rehab">1</span>
+                        </div>
+                        
+                        <div class="form-group full-width section-header" style="margin-top: 30px; margin-bottom: 15px; text-align: center;">
+                            FINALIZE
+                        </div>
+                        
+                        <div class="export-container">
+                            <button class="football-btn" id="save-general-btn">
+                                EXPORT SAVEFILE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-roster" class="tab-content" style="height: 100%;"> <div class="roster-layout">
+                        
+                        <div class="roster-list-col" id="roster-list-pane">
+                            <div class="list-header" style="margin-bottom: 15px;">
+                                <span style="font-size: 14px; color: #e0bb6b;">ROSTER LIST</span>
+                                <button class="locker-btn" id="add-player-btn">+ ADD NEW PLAYER</button>
+                            </div>
+                            <div id="roster-list-container" class="roster-list">
+                                </div>
+                        </div>
+
+                        <div class="player-editor-col hidden" id="player-editor-panel">
+                            
+                            <div class="back-btn-row" style="display:flex; justify-content:space-between; align-items:center;">
+                                <button class="locker-btn" id="roster-back-btn">
+                                    ⬅ BACK TO ROSTER
+                                </button>
+                                <span id="editor-player-title" style="color:#e0bb6b; font-size:12px;">EDIT PLAYER</span>
+                            </div>
+
+                            <div class="scrollable-editor">
+                                
+                                <div class="editor-section-label">IDENTITY</div>
+                                <div class="form-group-row">
+                                    <input type="text" id="p-fname" class="pixel-input" placeholder="First Name">
+                                    <input type="text" id="p-lname" class="pixel-input" placeholder="Last Name">
+                                </div>
+                                <div class="form-group-row">
+                                    <div style="flex:1;">
+                                        <label style="font-size:8px; color:#aaa; display:block; margin-bottom:4px;">POSITION</label>
+                                        <select id="p-position" class="pixel-input" style="width:100%;">
+                                            <option value="1">QB</option>
+                                            <option value="2">RB</option>
+                                            <option value="3">TE</option>
+                                            <option value="4">WR</option>
+                                            <option value="5">OL</option>
+                                            <option value="6">DL</option>
+                                            <option value="7">LB</option>
+                                            <option value="8">DB</option>
+                                            <option value="10">KICKER</option>
+                                        </select>
+                                    </div>
+                                    <div style="width: 80px;">
+                                        <label style="font-size:8px; color:#aaa; display:block; margin-bottom:4px;">AGE</label>
+                                        <input type="number" id="p-age" class="pixel-input" style="width: 100%;">
+                                    </div>
+                                </div>
+
+                                <div id="p-attributes-container">
+                                    </div>
+                                
+                                <div class="editor-section-label">VITALS</div>
+                                <div style="background: rgba(0,0,0,0.2); padding: 15px; border: 2px solid #2e1a14; border-radius:4px; display:flex; flex-direction:column; gap:12px;">
+                                    <div class="slider-row compact">
+                                        <div class="stat-label">
+                                            <span>MORALE</span>
+                                            <span class="stat-val" id="val-morale">50</span>
+                                        </div>
+                                        <input type="range" id="p-morale" min="0" max="100" class="pixel-slider">
+                                    </div>
+                                    <div class="slider-row compact">
+                                        <div class="stat-label">
+                                            <span>CONDITION</span>
+                                            <span class="stat-val" id="val-condition">100</span>
+                                        </div>
+                                        <input type="range" id="p-condition" min="0" max="100" class="pixel-slider">
+                                    </div>
+                                </div>
+
+                                <div style="height: 20px;"></div>
+                            </div>
+                            
+                            <button class="pixel-btn green-btn" id="save-player-btn" style="display:none;">APPLY CHANGES</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="tab-fa" class="tab-content"><p class="coming-soon">FREE AGENTS COMING SOON...</p></div>
+                <div id="tab-schedule" class="tab-content"><p class="coming-soon">SCHEDULE COMING SOON...</p></div>
+                <div id="tab-league" class="tab-content"><p class="coming-soon">LEAGUE SETTINGS COMING SOON...</p></div>
+                <div id="tab-team" class="tab-content"><p class="coming-soon">TEAM EDITOR COMING SOON...</p></div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-toast">Notification Text</div>
+
+    <div id="discord-popup" class="discord-popup-overlay">
+        <div class="discord-popup-content">
+            <i class="fab fa-discord discord-icon"></i>
+            <h3 class="discord-popup-title">Join the SaveXF Community!</h3>
+            <p class="discord-popup-text">Connect with other players, get updates, and share your saves!</p>
+            <div class="discord-buttons-container">
+                <button id="discord-already-in-btn" class="discord-popup-btn discord-secondary-btn">
+                    I'm already in! <span id="discord-countdown"></span>
+                </button>
+                <a href="https://discord.gg/4VKrS6abfN" target="_blank" class="discord-popup-btn" id="discord-join-btn">
+                    <i class="fab fa-discord mr-2"></i> Join Discord
+                </a>
+            </div>
+            <p class="discord-popup-small-text">This helps support future editor development.</p>
+        </div>
+    </div>
+
+    <div id="save-overlay" class="hidden">
+        <div class="save-modal-content">
+            <div class="love-note">YOUR EDITED SAVE IS READY!</div>
+            <p style="font-size: 10px; margin-bottom: 20px;">Saving your changes and preparing the download...</p>
+            
+            <div class="save-progress-container">
+                <div id="save-progress-bar"></div>
+            </div>
+            
+            <div id="save-status-text" style="font-size: 12px; color: #e0bb6b; margin-top: 10px;">PREPARING...</div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

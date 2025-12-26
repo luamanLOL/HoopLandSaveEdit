@@ -1,0 +1,42 @@
+/* I set up these global fade styles so every page loads in smooth. */
+body {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.loaded {
+    opacity: 1;
+}
+
+body.fading-out {
+    opacity: 0;
+}
+
+/* I wanted the back button to look the same everywhere, so I put the styles here. */
+.back-btn-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+}
+
+.back-btn {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn:hover {
+    background-color: var(--color-main-accent, #f97316);
+    border-color: var(--color-main-accent, #f97316);
+    transform: translateY(-2px);
+}
