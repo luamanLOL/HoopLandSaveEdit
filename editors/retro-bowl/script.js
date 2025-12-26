@@ -327,10 +327,21 @@ function downloadSaveFile() {
 
                 sendExportWebhook("Retro Bowl");
 
-                // Reload the page after a sec so they can start fresh if they want.
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                // No more auto-reload. It kills iOS downloads.
+                // Let's give them a button to restart.
+                const btn = document.createElement('button');
+                btn.textContent = "RESET EDITOR";
+                btn.className = "pixel-btn red-btn";
+                btn.style.marginTop = "20px";
+                btn.onclick = () => location.reload();
+                
+                if (statusText) {
+                    statusText.textContent = "DOWNLOAD COMPLETE!";
+                    if (!statusText.parentNode.querySelector('.reset-btn-marker')) {
+                        btn.classList.add('reset-btn-marker');
+                        statusText.parentNode.appendChild(btn);
+                    }
+                }
             }, 500);
         }
         if (progressBar) progressBar.style.width = width + '%';
