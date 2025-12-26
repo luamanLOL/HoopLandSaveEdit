@@ -443,19 +443,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                         
                         sendExportWebhook("Hoop Land");
 
-                        // After the download, I'm clearing the DB and reloading the page to reset everything.
-                        // CHANGED: Increased delay from 2000 to 10000 (10 seconds)
-                        setTimeout(() => {
-                            // Clear DB to prevent errors on next load
+                        // I removed the auto-reload because it messes with iOS downloads.
+                        // Instead, I'll show a button so the user can reload when THEY are ready.
+                        
+                        const startOverBtn = document.createElement('button');
+                        startOverBtn.textContent = "Start Over (Reload)";
+                        startOverBtn.style.marginTop = "20px";
+                        startOverBtn.style.padding = "10px 20px";
+                        startOverBtn.style.backgroundColor = "#ea580c"; // orange-600
+                        startOverBtn.style.color = "white";
+                        startOverBtn.style.border = "none";
+                        startOverBtn.style.borderRadius = "8px";
+                        startOverBtn.style.cursor = "pointer";
+                        startOverBtn.style.fontSize = "1.2rem";
+                        startOverBtn.style.fontWeight = "bold";
+                        
+                        startOverBtn.onclick = () => {
                             const deleteReq = indexedDB.deleteDatabase('HoopLandDB');
                             deleteReq.onsuccess = () => console.log("DB Deleted");
                             deleteReq.onerror = () => console.warn("DB Delete failed");
                              
                             localStorage.clear();
-                            
-                            // Reset UI
                             location.reload(); 
-                        }, 10000); // <--- CHANGE THIS VALUE
+                        };
+
+                        statusText.textContent = "Download Started!";
+                        // Check if button already exists to avoid duplicates (though reload clears it usually)
+                        if (!statusText.parentNode.querySelector('button[type="reload-btn"]')) {
+                             startOverBtn.setAttribute('type', 'reload-btn');
+                             statusText.parentNode.appendChild(startOverBtn);
+                        }
                     }, 500);
                 }
                 progressBar.style.width = width + '%';
