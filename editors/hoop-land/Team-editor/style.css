@@ -1,0 +1,459 @@
+/* --- GLOBAL RESET & VARIABLES --- */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+    --color-primary-bg: #0a0a0f;
+    --color-secondary-bg: #1a1d2d;
+    --color-card-bg: #1f2937;
+    --color-text-light: #e5e7eb;
+    --color-text-medium: #9ca3af;
+    --color-text-secondary: #9ca3af;
+    --color-main-accent: #FFD700; /* Gold */
+    --color-accent-glow: rgba(255, 215, 0, 0.5);
+    --color-border: #374151;
+    --color-pixel-border: #888;
+    --color-input-bg: var(--color-primary-bg);
+    --color-blue-accent: #3b82f6;
+    --color-skill-active: #10b981; /* Green for active skills */
+}
+
+/* ... (Keep existing Base Styles, Typography, Layout, Inputs, Buttons) ... */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Exo 2', sans-serif;
+    color: var(--color-text-light);
+    background-color: var(--color-primary-bg);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    /* Mobile Fix: Use dvh (Dynamic Viewport Height) to prevent address bar jumping */
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-size: 16px;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    background-image: url('../../../assets/images/court.png');
+    background-size: auto 100%;
+    animation: pan-background 80s linear infinite alternate;
+    z-index: -1;
+    filter: blur(5px) brightness(0.4) saturate(0.8);
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.3),
+        rgba(0,0,0,0.3) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    z-index: 1000; pointer-events: none;
+}
+
+@keyframes pan-background {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 3rem;
+}
+
+h1 {
+    font-family: 'Pixelify Sans', sans-serif;
+    color: var(--color-main-accent);
+    text-align: center;
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 5px var(--color-accent-glow), 0 0 5px #fff;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+
+h2 {
+    font-family: 'Pixelify Sans', sans-serif;
+    color: var(--color-main-accent);
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 5px var(--color-accent-glow);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+}
+
+.editor-card, .team-info-card, .player-info-card {
+    background: linear-gradient(145deg, var(--color-secondary-bg), #25293a);
+    border: 4px solid;
+    border-image: linear-gradient(to right, var(--color-pixel-border), var(--color-border)) 1;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    align-self: start;
+}
+
+.form-section {
+    border-top: 2px solid var(--color-border);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+.editor-card .form-section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+label {
+    font-weight: 600;
+    color: var(--color-text-medium);
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+input[type="text"], input[type="number"], select {
+    background-color: var(--color-primary-bg);
+    border: 2px solid var(--color-border);
+    color: var(--color-text-light);
+    padding: 0.75rem;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: 'Exo 2', sans-serif;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--color-main-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+/* Hide default spinners for number inputs */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+legend {
+    font-family: 'Pixelify Sans', sans-serif;
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    padding: 0.5rem 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+legend:hover { color: var(--color-main-accent); }
+.collapsible-indicator { transition: transform 0.3s ease; display: inline-block; }
+legend.active .collapsible-indicator { transform: rotate(90deg); }
+.collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+
+button {
+    background-color: var(--color-main-accent);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid var(--color-pixel-border);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    font-family: 'Pixelify Sans', sans-serif;
+    letter-spacing: 0.05em;
+    width: auto;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3), 0 6px 20px var(--color-accent-glow);
+}
+
+/* --- BUTTON STYLES OVERRIDE FOR MASS EDIT & ROTATION --- */
+.mass-edit-option, .rotation-btn, #mass-edit-btn {
+    background-color: #4b5563; /* Soft Gray */
+    color: #f3f4f6; /* White-ish text */
+    border: 2px solid var(--color-pixel-border);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
+    font-family: 'Exo 2', sans-serif; /* More modern font for these utility buttons */
+    text-transform: none; /* Less aggressive */
+}
+
+.mass-edit-option:hover, .rotation-btn:hover, #mass-edit-btn:hover {
+    background-color: #6b7280; /* Lighter Gray */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+}
+
+/* Specific rotation button sizing */
+.rotation-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+
+/* Modals */
+.modal {
+    position: fixed; z-index: 1001; left: 0; top: 0;
+    width: 100%; height: 100%; overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 1; transition: opacity 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.modal.modal-hidden {
+    opacity: 0; pointer-events: none;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, var(--color-secondary-bg), #25293a);
+    border: 4px solid;
+    border-image: linear-gradient(to right, var(--color-pixel-border), var(--color-border)) 1;
+    padding: 2.5rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    max-width: 1000px;
+    width: 90%;
+    position: relative;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+}
+
+.close-button {
+    color: var(--color-text-medium);
+    position: absolute; top: 1rem; right: 1.5rem;
+    font-size: 28px; font-weight: bold;
+    cursor: pointer; transition: color 0.2s;
+    z-index: 200;
+}
+.close-button:hover { color: var(--color-main-accent); }
+
+/* --- STAFF MODAL SCROLL FIX --- */
+.modal-grid-scroll {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Scrollbar styling for the modal content */
+.modal-grid-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.modal-grid-scroll::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+.modal-grid-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+.modal-grid-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-medium);
+}
+
+/* Mobile override for grid scroll */
+@media (max-width: 768px) {
+    .modal-grid-scroll {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+#toast {
+    position: fixed; bottom: -100px; left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-main-accent);
+    color: white; padding: 1rem 2rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: bottom 0.5s ease-in-out;
+    z-index: 2000;
+    font-weight: 600; font-family: 'Pixelify Sans', sans-serif;
+    border: 2px solid var(--color-pixel-border);
+}
+#toast.show { bottom: 30px; }
+
+/* --- TEAM EDITOR SPECIFIC STYLES --- */
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-border);
+}
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-medium);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    border-bottom: 4px solid transparent;
+    transition: all 0.2s;
+    box-shadow: none; /* Override default button shadow */
+}
+.tab-btn:hover {
+    color: var(--color-text-light);
+    transform: none; /* Override default button hover */
+    box-shadow: none;
+}
+.tab-btn.active {
+    color: var(--color-main-accent);
+    border-bottom-color: var(--color-main-accent);
+}
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.tab-content.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Staff Cards */
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+.staff-card {
+    background-color: var(--color-secondary-bg);
+    border: 2px solid var(--color-border);
+    padding: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.staff-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-main-accent);
+}
+.staff-role {
+    font-family: 'Pixelify Sans', sans-serif;
+    color: var(--color-main-accent);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.staff-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+.staff-details {
+    font-size: 0.85rem;
+    color: var(--color-text-medium);
+}
+
+/* Roster Table */
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Exo 2', sans-serif;
+}
+.roster-table th, .roster-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+.roster-table th {
+    color: var(--color-text-medium);
+    font-family: 'Pixelify Sans', sans-serif;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+.roster-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* Team Info Card */
+#team-logo-card {
+    text-align: center;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-size: 3rem;
+    color: var(--color-main-accent);
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    .main-content { grid-template-columns: 1fr; }
+    .tabs { flex-direction: column; }
+    .tab-btn { width: 100%; text-align: center; border-bottom: 1px solid var(--color-border); }
+    .tab-btn.active { border-bottom: 2px solid var(--color-main-accent); }
+
+    /* Mobile Table Tweaks */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .roster-table th, .roster-table td {
+        padding: 0.25rem; /* Tighter padding */
+    }
+    .roster-table {
+        font-size: 0.9rem; /* Smaller font */
+    }
+}
+
+#back-to-hub-btn {
+    margin-top: 2rem;
+    margin-left: 2rem;
+}

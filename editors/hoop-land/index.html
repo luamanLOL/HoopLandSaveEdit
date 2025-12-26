@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoop Land Editor - SaveXF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="transition.css">
+    <link rel="icon" href="savexf copy.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <svg width="0" height="0" style="position:absolute;pointer-events:none;">
+        <defs>
+            <linearGradient id="half-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="50%" style="stop-color:var(--color-star);" />
+                <stop offset="50%" style="stop-color:var(--color-gray-500);" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <template id="league-card-template">
+        <button class="sports-card edit-league-btn" data-league-index="">
+            <div class="foil-effect"></div>
+            <div class="sports-card-content">
+                <div>
+                    <h3 class="card-title">League Name</h3>
+                    <p class="card-subtitle">Players | Teams</p>
+                </div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-value avg-age"></span>
+                        <span class="stat-label">Avg Age</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value avg-height"></span>
+                        <span class="stat-label">Avg Ht</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value is-star avg-potential"></span>
+                        <span class="stat-label">Avg Pot</span>
+                    </div>
+                </div>
+            </div>
+        </button>
+    </template>
+
+    <template id="player-card-template">
+        <button class="sports-card">
+            <div class="foil-effect"></div>
+            <div class="sports-card-content">
+                <div>
+                    <h3 class="card-title">Player Name</h3>
+                    <p class="card-subtitle">POS | Team Name</p>
+                </div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-value age">N/A</span>
+                        <span class="stat-label">Age</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value height">N/A</span>
+                        <span class="stat-label">Height</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value is-star awards"><i class="fas fa-trophy"></i> 0</span>
+                        <span class="stat-label">Awards</span>
+                    </div>
+                </div>
+            </div>
+        </button>
+    </template>
+
+    <template id="team-card-template">
+        <button class="sports-card">
+            <div class="foil-effect"></div>
+            <div class="sports-card-content">
+                <div>
+                    <h3 class="card-title">Team Name</h3>
+                    <p class="card-subtitle">Division</p>
+                </div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-value record">0-0</span>
+                        <span class="stat-label">Record</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value rank">N/A</span>
+                        <span class="stat-label">Rank</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value is-star champs"><i class="fas fa-trophy"></i> 0</span>
+                        <span class="stat-label">Champs</span>
+                    </div>
+                </div>
+            </div>
+        </button>
+    </template>
+
+
+    <div class="background-container" id="background-container">
+        <div class="scanlines"></div>
+        <div class="particles"></div>
+    </div>
+
+    <main class="w-full h-full relative z-10">
+        <div id="local-player-info" class="local-player-info-container local-player-info-initial-state">
+            <div class="local-player-top-row">
+                <div class="local-player-name-tag-group">
+                    <span id="local-player-name" class="text-lg font-semibold"></span>
+                    <span id="local-player-tag" class="text-base text-gray-400"></span>
+                </div>
+                <div class="local-player-controls-group">
+                    <div class="local-player-currency-item">
+                        <span class="text-xl text-yellow-400"><i class="fas fa-coins"></i></span>
+                        <span id="local-player-coins" class="text-lg text-yellow-300"></span>
+                    </div>
+                    <div class="local-player-currency-item">
+                        <span class="text-xl text-red-400"><i class="fas fa-heart"></i></span>
+                        <span id="local-player-fans" class="text-lg text-red-300"></span>
+                    </div>
+                    <button id="theme-toggle-btn" class="theme-toggle-btn">
+                        <i id="theme-toggle-icon" class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="local-player-fame-row">
+                <span id="local-player-fame" class="fame-rainbow-text"></span>
+            </div>
+        </div>
+
+        <div id="file-upload-screen" class="screen w-full h-full flex flex-col items-center justify-center text-center">
+            <h1 class="page-title main-title">Hoop Land Editor</h1>
+            <div id="file-drop-container" class="w-full flex flex-col items-center">
+                <div id="file-drop-zone" class="w-full max-w-2xl h-80 rounded-2xl flex flex-col items-center justify-center p-6">
+                    <i class="fas fa-cloud-upload-alt text-orange-400 mb-4 text-6xl"></i>
+                    <p class="text-2xl font-semibold text-gray-100">Drag & Drop Your Save File Here</p>
+                    <p class="text-gray-400 mt-2">or</p>
+                    <button id="select-file-btn" class="mt-4 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50">Select File</button>
+                </div>
+                <p class="text-sm text-gray-500 mt-6 italic">Lovingly crafted by 5xf for the Hoop Land community.</p>
+            </div>
+            <div id="loading-indicator" class="hidden w-full flex flex-col items-center justify-center">
+                <div class="loader"></div>
+                <p id="loading-message" class="text-lg mt-4 text-gray-300">Loading Save File...</p>
+            </div>
+            <input type="file" id="file-input" class="hidden">
+        </div>
+
+        <div id="league-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center">
+            <h1 class="page-title main-title">SELECT A LEAGUE</h1>
+            <div id="league-card-container" class="w-full max-w-5xl">
+                <p id="no-leagues-message" class="hidden text-gray-400 text-lg">No leagues found in save file. Please upload a valid Hoop Land save.</p>
+            </div>
+        </div>
+
+        <div id="edit-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center">
+            <button id="back-to-leagues-btn" class="back-button group focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                <i class="fas fa-arrow-left mr-2 group-hover:text-white"></i>
+                <span class="group-hover:text-white">Back to Leagues</span>
+            </button>
+            <h1 id="editing-league-title" class="page-title main-title"></h1>
+            <div class="edit-options-container">
+                <div class="edit-options-row">
+                    <button id="local-player-card" class="edit-option-card">
+                        <div class="foil-effect"></div>
+                        <div class="edit-option-icon"><i class="fas fa-user-circle"></i></div>
+                        <h3 class="edit-option-title">Local Player: <span id="local-player-card-name"></span></h3>
+                        <p id="local-player-card-desc" class="edit-option-desc">Directly edit your currently selected player's attributes and contract.</p>
+                    </button>
+                    <button id="local-team-card" class="edit-option-card">
+                        <div class="foil-effect"></div>
+                        <div class="edit-option-icon"><i class="fas fa-users"></i></div>
+                        <h3 class="edit-option-title">Local Team: <span id="local-team-card-name"></span></h3>
+                        <p class="edit-option-desc">Manage your own team's roster, staff, and strategy.</p>
+                    </button>
+                    <button id="create-player-card" class="edit-option-card">
+                        <div class="foil-effect"></div>
+                        <div class="edit-option-icon"><i class="fas fa-user-plus"></i></div>
+                        <h3 class="edit-option-title">Create a Player</h3>
+                        <p class="edit-option-desc">Forge a new legend. Create a rivalry or a new teammate to shift the balance of power.</p>
+                    </button>
+                    <button id="general-search-card" class="edit-option-card">
+                        <div class="foil-effect"></div>
+                        <div class="edit-option-icon"><i class="fas fa-search"></i></div>
+                        <h3 class="edit-option-title">General Search</h3>
+                        <p class="edit-option-desc">Edit any one specific player or entire team across this league.</p>
+                    </button>
+                    <button id="league-edit-main-card" class="edit-option-card">
+                        <div class="foil-effect"></div>
+                        <div class="edit-option-icon"><i class="fas fa-cog"></i></div>
+                        <h3 class="edit-option-title">League Edit</h3>
+                        <p id="league-edit-desc" class="edit-option-desc"></p>
+                    </button>
+                    <div class="edit-option-card save-card" id="save-modded-file-btn">
+                        <i class="fas fa-file-export"></i>
+                        <h3>Save Modded File</h3>
+                        <p>Export your changes to JSON</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="general-search-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center">
+            <button id="back-to-edit-selection-btn" class="back-button group focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                <i class="fas fa-arrow-left mr-2 group-hover:text-white"></i>
+                <span class="group-hover:text-white">Back to Edit Options</span>
+            </button>
+            <h1 class="page-title main-title">GENERAL SEARCH</h1>
+            <div class="edit-options-container">
+                <div class="edit-options-row">
+                    <button id="player-edit-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-user-edit"></i></div>
+                        <h3 class="edit-option-title">Player Edit</h3>
+                        <p class="edit-option-desc">Find and modify any player in the league.</p>
+                    </button>
+                    <button id="team-edit-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-users-cog"></i></div>
+                        <h3 class="edit-option-title">Team Edit</h3>
+                        <p class="edit-option-desc">Find and modify any team in the league.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+<div id="search-screen" class="hidden scout-pro-container">
+    <div class="scout-toolbar">
+        <button id="exitSearchBtn" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer; padding:0 1rem;">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <h2 id="search-title" style="margin: 0 1rem; font-size: 1.2rem; font-weight: bold; white-space: nowrap; display: none;">Search</h2>
+
+        <div class="search-bar-wrapper" style="flex:1; display:block;">
+             <i class="fas fa-search"></i>
+             <input type="text" id="searchInput" placeholder="Search database..." autocomplete="off">
+        </div>
+        
+        <div class="filter-dropdown-wrapper">
+             <button id="filterToggleBtn" class="toolbar-btn"><i class="fas fa-filter"></i></button>
+             <div id="filterDropdownMenu" class="filter-dropdown hidden">
+                <div class="dropdown-header">Active Filters <button id="clearFiltersBtn">Clear All</button></div>
+                <div class="filter-group-cozy">
+                     <label>Position:</label>
+                     <div id="position-filter-container" class="filter-chips-area"></div>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <div class="scout-main-grid">
+
+
+        <section class="scout-list-panel">
+            <div class="table-container">
+                <div class="data-table-header">
+                    <div class="col-rank">#</div>
+                    <div class="col-name">PLAYER</div>
+                    <div id="header-col-pos" class="col-pos">POS</div>
+                    <div class="col-stat">PTS</div> <div class="col-stat">POT</div>
+                </div>
+                <div id="resultsContainer" class="data-table-body">
+                    </div>
+            </div>
+             <div id="noResultsMessage" class="hidden">No matching records found.</div>
+        </section>
+
+
+    </div>
+</div>
+
+        <div id="league-edit-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center">
+            <button id="back-to-edit-from-league-btn" class="back-button group focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                <i class="fas fa-arrow-left mr-2 group-hover:text-white"></i>
+                <span class="group-hover:text-white">Back to Edit Options</span>
+            </button>
+            <h1 class="page-title main-title">LEAGUE EDIT</h1>
+            <div class="edit-options-container">
+                <div class="edit-options-row">
+                    <button id="league-settings-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-sliders-h"></i></div>
+                        <h3 class="edit-option-title">League Settings</h3>
+                        <p class="edit-option-desc">Adjust global league rules, finances, and progression.</p>
+                    </button>
+                    <button id="league-stats-edit-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-pencil-alt"></i></div>
+                        <h3 class="edit-option-title">League Wide Edit</h3>
+                        <p class="edit-option-desc">Modify attributes and stats for every character in the game.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="local-player-selection-screen" class="screen hidden w-full h-full flex flex-col items-center justify-center">
+            <button id="back-to-edit-selection-from-local-player-btn" class="back-button group">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span>Back to Edit Options</span>
+            </button>
+            <h1 class="page-title main-title">LOCAL PLAYER EDIT</h1>
+            <div class="edit-options-container">
+                <div class="edit-options-row">
+                    <button id="local-attribute-edit-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-user-cog"></i></div>
+                        <h3 class="edit-option-title">Attribute Edit</h3>
+                        <p class="edit-option-desc">Modify your player's physical traits, skills, contract, and more.</p>
+                    </button>
+                    <button id="local-stats-edit-card" class="edit-option-card">
+                        <div class="edit-option-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h3 class="edit-option-title">Stats Edit</h3>
+                        <p class="edit-option-desc">Adjust your player's career stats, averages, and single-game highs.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="local-player-attribute-edit-screen" class="screen hidden w-full h-full flex flex-col items-center">
+             <button id="back-to-local-player-menu-btn" class="back-button group">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span>Back</span>
+            </button>
+            <div class="edit-form-container">
+                <h1 class="page-title main-title">ATTRIBUTE EDIT</h1>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="local-player-name-input">Name</label>
+                        <input type="text" id="local-player-name-input" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-age">Age</label>
+                        <input type="number" id="local-player-age" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-height">Height (Inches)</label>
+                        <input type="number" id="local-player-height" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label for="local-player-weight">Weight (Lbs)</label>
+                        <input type="number" id="local-player-weight" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-coins-input">Coins</label>
+                        <input type="number" id="local-player-coins-input" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-fans-input">Fans</label>
+                        <input type="number" id="local-player-fans-input" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-position">Position</label>
+                        <input type="text" id="local-player-position" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="local-player-build">Build Name</label>
+                        <input type="text" id="local-player-build" class="form-input">
+                    </div>
+                </div>
+                 <div class="form-grid-full-width">
+                    <button class="form-button">Attributes</button>
+                    <button class="form-button">Skills & Badges</button>
+                    <button class="form-button">Player Contract</button>
+                    <button class="form-button">Tendencies</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="local-player-stats-edit-screen" class="screen hidden w-full h-full flex flex-col items-center">
+            <button id="back-to-local-player-menu-from-stats-btn" class="back-button group">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span>Back</span>
+            </button>
+            <div class="edit-form-container">
+                <h1 class="page-title main-title">STATS EDIT</h1>
+                
+                <h3 class="form-section-title">Career Highs</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Points</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>3 Pointers Made</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Rebounds</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Assists</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Steals</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Blocks</label>
+                        <input type="number" class="form-input">
+                    </div>
+                </div>
+
+                <h3 class="form-section-title">Career Totals</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Games Played</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Points</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>FG%</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>3 Pointers Made</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>3PT%</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Free Throws Made</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>FT%</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Rebounds</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Assists</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Steals</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Blocks</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Turnovers</label>
+                        <input type="number" class="form-input">
+                    </div>
+                </div>
+
+                 <h3 class="form-section-title">Career Averages</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Points</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Rebounds</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Assists</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Steals</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Blocks</label>
+                        <input type="number" class="form-input">
+                    </div>
+                     <div class="form-group">
+                        <label>Turnovers</label>
+                        <input type="number" class="form-input">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <div id="notification-toast"></div>
+    <div id="discord-popup" class="discord-popup-overlay">
+        <div class="discord-popup-content">
+            <i class="fab fa-discord discord-icon"></i>
+            <h3 class="discord-popup-title">Join the SaveXF Community!</h3>
+            <p class="discord-popup-text">Connect with other players, get updates, and share your saves!</p>
+            <div class="discord-buttons-container">
+                <button id="discord-already-in-btn" class="discord-popup-btn discord-secondary-btn">
+                    I'm already in! <span id="discord-countdown"></span>
+                </button>
+                <a href="https://discord.gg/4VKrS6abfN" target="_blank" class="discord-popup-btn" id="discord-join-btn">
+                    <i class="fab fa-discord mr-2"></i> Join Discord
+                </a>
+            </div>
+            <p class="discord-popup-small-text">This helps support future editor development.</p>
+        </div>
+    </div>
+
+    <div id="filter-popup" class="filter-popup-overlay hidden">
+        <div class="filter-popup-content">
+            <button class="filter-popup-close" id="filter-close-btn">&times;</button>
+            <h3 class="filter-popup-title"><i class="fas fa-filter mr-2"></i>Sort Options</h3>
+            <div id="filter-options-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="save-overlay" class="hidden">
+        <div class="save-modal-content">
+            <h2 id="save-status-text">Packaging Modded Save...</h2>
+
+            <div class="save-progress-container">
+                <div id="save-progress-bar"></div>
+            </div>
+
+            <p class="love-note">ENJOY! Made by 5xf with love💞 Consider donating!</p>
+
+            <div class="save-video-container">
+                <iframe 
+                    width="560" height="315" 
+                    src="https://www.youtube.com/embed/sy-Te7wPmak?start=2&autoplay=1&mute=1" 
+                    title="Hoop Land Save Editor" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="mass-edit-league-modal" class="filter-popup-overlay hidden">
+        <div class="filter-popup-content" style="max-width: 600px;">
+            <button class="filter-popup-close" id="mass-edit-league-close">&times;</button>
+            <h3 class="filter-popup-title">League Wide Mass Edit</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--color-text-medium);">Apply changes to EVERY player in the league.</p>
+            <div style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;">
+                <button type="button" class="mass-edit-league-btn form-button" data-action="god-mode">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">All Max</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">Set all attributes to 10</div>
+                </button>
+                <button type="button" class="mass-edit-league-btn form-button" data-action="health-potion">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Health Potion</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">Heal injuries & restore condition</div>
+                </button>
+                <button type="button" class="mass-edit-league-btn form-button" data-action="cap-cleaner">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Free Contract</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">Set all salaries to $0M</div>
+                </button>
+                <button type="button" class="mass-edit-league-btn form-button" data-action="contract-lock">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Contract Lock</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">Set 100 Years & NTC</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="fileHandler.js"></script>
+    <script src="ui.js"></script>
+    <script src="search.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
