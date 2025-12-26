@@ -1,50 +1,31 @@
 import { detectAndDecode } from './rb-decoder.js';
+import { jsonToIni } from './rb-encoder.js';
 
-// Hey! This part here is just setting up what labels we show for each position.
-// Basically, quarterbacks need different stats shown than kickers, right?
 const POS_LABELS = {
-    // QB stuff: Accuracy, arm strength, speed, stamina
-    1: {
-        keys: ['throwing_accuracy', 'strength', 'speed', 'stamina'],
-        labels: ['THROW ACC', 'ARM STRN', 'SPEED', 'STAM']
-    },
-    // RB, TE, WR: They all kinda need the same stuff (Catching, Strength, etc.)
-    2: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    3: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    4: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // OL: They just block. Simple enough.
-    5: { keys: ['blocking', 'strength', 'speed', 'stamina'], labels: ['BLOCKING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // Defense guys (DL, LB, DB): Tackling is key here.
-    6: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    7: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    8: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // Kickers: They have their own special stats.
-    10: {
-        keys: ['skill', 'strength', 'speed', 'stamina'], 
-        labels: ['KICK ACC', 'KICK RANGE', 'SPEED', 'STAMINA'] 
-    }
+    1: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['THROW ACC', 'ARM STRN', 'SPEED', 'STAM'] },
+    2: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    3: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    4: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    5: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['BLOCKING', 'STREN', 'SPEED', 'STAMINA'] },
+    6: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    7: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    8: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    10: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['KICK ACC', 'KICK RANGE', 'SPEED', 'STAMINA'] }
 };
 
-// Just a quick helper to turn numbers into position names (like 1 -> QB).
 const POS_MAP = {
     1: 'QB', 2: 'RB', 3: 'TE', 4: 'WR', 5: 'OL',
     6: 'DL', 7: 'LB', 8: 'DB', 10: 'K'
 };
 
-// This variable holds the save file data once we load it.
 window.currentSaveData = null;
-let currentPlayerKey = null; 
+window.originalFileName = null;
+let currentPlayerKey = null;
 let toastTimeout = null;
 
-// Wait for the page to load before we start doing anything.
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initUploadLogic();
-
-    // If there's a Discord popup, let's make sure the buttons work.
     document.getElementById('discord-already-in-btn')?.addEventListener('click', () => {
         if (!document.getElementById('discord-already-in-btn').classList.contains('disabled')) {
             closeDiscordPopup();
@@ -53,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('discord-join-btn')?.addEventListener('click', closeDiscordPopup);
 });
 
-// Setting up all the button clicks for moving around the editor.
 function initNavigation() {
     const exitBtn = document.getElementById('exit-editor-btn');
     if(exitBtn) exitBtn.addEventListener('click', () => {
@@ -66,24 +46,18 @@ function initNavigation() {
         document.getElementById('player-editor-panel').classList.add('hidden');
     });
 
-    // That back button on the roster screen...
     const backBtn = document.getElementById('roster-back-btn');
     if(backBtn) {
         backBtn.addEventListener('click', () => {
-            // Switch views back to the list
             document.getElementById('player-editor-panel').classList.add('hidden');
             document.getElementById('roster-list-pane').classList.remove('hidden');
-            
-            // Re-draw the list in case we changed a name or something.
             populateRosterList();
         });
     }
 
-    // Dealing with the tabs at the top.
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = btn.getAttribute('data-tab');
-            // Some stuff isn't ready yet, so I just tell people "Coming Soon".
             if(targetId === 'tab-fa' || targetId === 'tab-schedule' || targetId === 'tab-team' || targetId === 'tab-league') {
                 showToast("FEATURE COMING SOON!", "info");
                 return;
@@ -101,7 +75,6 @@ function initNavigation() {
         });
     });
 
-    // The toggle for QB mode.
     const qbToggle = document.getElementById('qb-mode-toggle');
     if(qbToggle) qbToggle.addEventListener('change', (e) => {
         if(!window.currentSaveData) return;
@@ -110,7 +83,6 @@ function initNavigation() {
     });
 }
 
-// Handling the file upload stuff (drag & drop or selecting a file).
 function initUploadLogic() {
     const dropZone = document.getElementById('drop-zone');
     const manualZone = document.getElementById('manual-zone');
@@ -131,18 +103,16 @@ function initUploadLogic() {
     });
 }
 
-// Just reading the file the user gave us.
 function handleFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => processData(e.target.result, file.name);
     reader.readAsText(file);
 }
 
-// This is where the magic happens. We try to make sense of the file data.
 function processData(content, sourceName) {
     try {
+        window.originalFileName = sourceName;
         let decoded = null;
-        // Check if it looks like an INI file or just the raw JSON stuff.
         if (content.includes('="') || content.includes('=')) decoded = parseIni(content);
         else decoded = detectAndDecode(content);
 
@@ -154,7 +124,6 @@ function processData(content, sourceName) {
             initEditor(); 
             showToast("SAVE LOADED!", "success");
 
-            // Handling that Discord popup timer thingy.
             const discordPopup = document.getElementById('discord-popup');
             const discordAlreadyInBtn = document.getElementById('discord-already-in-btn');
             const discordCountdown = document.getElementById('discord-countdown');
@@ -191,7 +160,6 @@ function closeDiscordPopup() {
     }
 }
 
-// If the file is INI format, we gotta split it up line by line.
 function parseIni(text) {
     const lines = text.split(/\r?\n/);
     const result = {};
@@ -208,7 +176,6 @@ function parseIni(text) {
     return result;
 }
 
-// Sometimes the data is nested deep, so this helps pull it out.
 function deepUnwrap(obj) {
     if (!obj) return obj;
     if (obj.__RB_TYPE && obj.data !== undefined) return deepUnwrap(obj.data);
@@ -221,13 +188,10 @@ function deepUnwrap(obj) {
     return obj;
 }
 
-// Getting ready to show the editor screen.
 function getGeneralData() { return window.currentSaveData; }
 function getAllPlayerKeys() {
     const data = window.currentSaveData;
-    // We only want the roster entries.
     const keys = Object.keys(data).filter(k => k.startsWith('roster_'));
-    // Sort them so they appear in order.
     keys.sort((a, b) => parseInt(a.replace('roster_', '')) - parseInt(b.replace('roster_', '')));
     return keys;
 }
@@ -245,7 +209,6 @@ function checkQbMode() {
     document.getElementById('qb-mode-toggle').checked = isEnabled;
 }
 
-// Fill in the general team info fields.
 function populateGeneralTab() {
     const gen = getGeneralData();
     document.getElementById('gen-fname').value = gen.fname || "";
@@ -261,7 +224,6 @@ function populateGeneralTab() {
     }
 }
 
-// Makes sure the sliders update the little number next to them.
 function updateSlider(id, labelId, val) {
     const el = document.getElementById(id);
     if(el) {
@@ -272,7 +234,6 @@ function updateSlider(id, labelId, val) {
 }
 
 document.getElementById('save-general-btn')?.addEventListener('click', () => {
-    // Save all the general tab inputs back to our data object.
     const gen = getGeneralData();
     gen.fname = document.getElementById('gen-fname').value;
     gen.lname = document.getElementById('gen-lname').value;
@@ -288,7 +249,6 @@ document.getElementById('save-general-btn')?.addEventListener('click', () => {
     downloadSaveFile();
 });
 
-// Pack it all up and give the user their file back!
 function downloadSaveFile() {
     if (!window.currentSaveData) return;
 
@@ -299,7 +259,7 @@ function downloadSaveFile() {
     if (overlay) overlay.classList.remove('hidden');
 
     let width = 0;
-    const duration = 3000; // Fake loading bar for effect (3 seconds)
+    const duration = 3000;
     const intervalTime = 50;
     const step = 100 / (duration / intervalTime);
     
@@ -312,35 +272,40 @@ function downloadSaveFile() {
             if (statusText) statusText.textContent = "DOWNLOAD STARTING...";
             
             setTimeout(() => {
-                const dataStr = JSON.stringify(window.currentSaveData, null, 2);
-                const blob = new Blob([dataStr], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "retrobowl_edited.ini";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showToast("FILE EXPORTED!", "success");
+                try {
+                    const iniContent = jsonToIni(window.currentSaveData);
+                    const ext = window.originalFileName ? window.originalFileName.split('.').pop() : 'ini';
+                    const finalName = `modded with savexf.${ext}`;
 
-                sendExportWebhook("Retro Bowl");
+                    const blob = new Blob([iniContent], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = finalName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showToast("FILE EXPORTED!", "success");
+                    sendExportWebhook("Retro Bowl");
 
-                // No more auto-reload. It kills iOS downloads.
-                // Let's give them a button to restart.
-                const btn = document.createElement('button');
-                btn.textContent = "RESET EDITOR";
-                btn.className = "pixel-btn red-btn";
-                btn.style.marginTop = "20px";
-                btn.onclick = () => location.reload();
-                
-                if (statusText) {
-                    statusText.textContent = "DOWNLOAD COMPLETE!";
-                    if (!statusText.parentNode.querySelector('.reset-btn-marker')) {
-                        btn.classList.add('reset-btn-marker');
-                        statusText.parentNode.appendChild(btn);
+                    const btn = document.createElement('button');
+                    btn.textContent = "RESET EDITOR";
+                    btn.className = "pixel-btn red-btn";
+                    btn.style.marginTop = "20px";
+                    btn.onclick = () => location.reload();
+                    
+                    if (statusText) {
+                        statusText.textContent = "DOWNLOAD COMPLETE!";
+                        if (!statusText.parentNode.querySelector('.reset-btn-marker')) {
+                            btn.classList.add('reset-btn-marker');
+                            statusText.parentNode.appendChild(btn);
+                        }
                     }
+                } catch (e) {
+                    console.error(e);
+                    showToast("EXPORT ERROR", "error");
                 }
             }, 500);
         }
@@ -348,44 +313,30 @@ function downloadSaveFile() {
     }, intervalTime);
 }
 
-// Send a ping to the count server so I can see how many exports are happening.
 async function sendExportWebhook(gameName) {
-    const webhookURL = "https://discord.com/api/webhooks/1453972526777766081/IHCa60X3FPz8qaS8F8lBPGpwRfYqMs3X_w5UOH5xVMYcoVFamF5dugHNp863uxn0gvK1"; // PASTE YOUR WEBHOOK URL HERE
+    const webhookURL = "https://discord.com/api/webhooks/1453972526777766081/IHCa60X3FPz8qaS8F8lBPGpwRfYqMs3X_w5UOH5xVMYcoVFamF5dugHNp863uxn0gvK1";
     
-    // Setting up the counter stuff.
     const namespace = "SaveXF"; 
     const key = gameName.replace(/\s+/g, '-').toLowerCase() + "-exports";
 
     let globalCount = "N/A";
 
     try {
-        // Hitting the API to up the count.
         const countRes = await fetch(`https://abacus.jasoncameron.dev/hit/${namespace}/${key}`);
-        
         if (countRes.ok) {
             const countData = await countRes.json();
             globalCount = countData.value;
-        } else {
-            console.warn("Counter API returned error:", countRes.status);
         }
-    } catch (err) {
-        console.warn("Could not fetch global count (API might be down):", err);
-    }
+    } catch (err) {}
 
     const data = window.currentSaveData || {};
-    
-    // 1. Get Game Specifics
     const coachName = (data.fname && data.lname) ? `${data.fname} ${data.lname}` : "Unknown Coach";
     const credits = data.coach_credit || "0";
     const cap = data.salary_cap ? `$${data.salary_cap}M` : "N/A";
     const isQBMode = (parseInt(data.qb_mode) === 1) ? "✅ Active" : "❌ Disabled";
     
-    // 2. Get Browser Specifics
-    const platform = navigator.platform; // e.g. "Win32", "iPhone"
+    const platform = navigator.platform;
     const screenRes = `${window.screen.width}x${window.screen.height}`;
-    
-    // 3. Time Spent (approximate)
-    // performance.now() returns milliseconds since page load. /1000/60 = minutes.
     const timeSpent = (performance.now() / 1000 / 60).toFixed(1) + " mins";
 
     const payload = {
@@ -393,19 +344,14 @@ async function sendExportWebhook(gameName) {
         embeds: [{
             title: `🏈 Export: ${gameName}`,
             description: `**Total Global Exports:** \`${globalCount}\``,
-            color: 15105570, // Orange-ish for RB
+            color: 15105570,
             fields: [
-                // Row 1: The "Who"
                 { name: "🧢 Coach", value: coachName, inline: true },
                 { name: "💰 Credits", value: `${credits} CC`, inline: true },
                 { name: "💵 Cap Space", value: cap, inline: true },
-                
-                // Row 2: The "What"
                 { name: "🏃 QB Mode", value: isQBMode, inline: true },
                 { name: "⏱️ Session Time", value: timeSpent, inline: true },
                 { name: "🖥️ Screen", value: screenRes, inline: true },
-
-                // Row 3: Footer info
                 { name: "📱 Device", value: platform, inline: true },
                 { name: "📅 Date", value: new Date().toLocaleDateString(), inline: true }
             ],
@@ -413,15 +359,12 @@ async function sendExportWebhook(gameName) {
         }]
     };
 
-    // Sending it off!
     fetch(webhookURL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     }).catch(err => console.error("Webhook Error:", err));
 }
-
-// Building the list of players on the roster screen.
 
 function populateRosterList() {
     const listContainer = document.getElementById('roster-list-container');
@@ -460,7 +403,6 @@ function populateRosterList() {
         `;
         
         item.addEventListener('click', () => {
-            // Switch to editor view for this player
             document.getElementById('roster-list-pane').classList.add('hidden');
             document.getElementById('player-editor-panel').classList.remove('hidden');
             loadPlayerIntoEditor(key, player);
@@ -477,17 +419,14 @@ function loadPlayerIntoEditor(key, player) {
     document.getElementById('p-fname').value = player.fname || "";
     document.getElementById('p-lname').value = player.lname || "";
     
-    // Making sure the dropdown sees this as a string so it picks the right option.
     const posVal = player.position !== undefined ? player.position : 1;
     document.getElementById('p-position').value = String(posVal);
     
     document.getElementById('p-age').value = player.age || 21;
     
-    // Mapping internal values to the inputs.
     document.getElementById('p-morale').value = player.attitude || 50;
     document.getElementById('p-condition').value = player.condition || 100;
 
-    // Setting up the auto-save listeners so we don't need a "Save" button for every field.
     setupAutoSaveInput('p-fname', 'fname');
     setupAutoSaveInput('p-lname', 'lname');
     setupAutoSaveInput('p-position', 'position', true); 
@@ -495,7 +434,6 @@ function loadPlayerIntoEditor(key, player) {
     setupAutoSaveInput('p-morale', 'attitude', true);
     setupAutoSaveInput('p-condition', 'condition', true);
 
-    // Refreshing the number display for sliders.
     const elMorale = document.getElementById('p-morale');
     const elCond = document.getElementById('p-condition');
 
@@ -516,10 +454,7 @@ function loadPlayerIntoEditor(key, player) {
     label.textContent = "ATTRIBUTES";
     attrContainer.appendChild(label);
 
-    // Here we decide which sliders to show based on the position.
     const posID = parseInt(player.position || 1);
-    
-    // Default to QB if we don't know what it is.
     const config = POS_LABELS[posID] || POS_LABELS[1];
     
     const keysToRender = config.keys;
@@ -527,8 +462,6 @@ function loadPlayerIntoEditor(key, player) {
 
     keysToRender.forEach((attrKey, index) => {
         let finalKey = attrKey;
-        
-        // Sometimes the game uses 'skill' instead of 'catching' or whatever.
         if (player[finalKey] === undefined && player['skill'] !== undefined) {
             finalKey = 'skill';
         }
@@ -555,27 +488,19 @@ function loadPlayerIntoEditor(key, player) {
             // Updating the actual data.
             window.currentSaveData[currentPlayerKey][finalKey] = newVal;
             
-            // Making sure the potential maxes out too so the game doesn't freak out.
-            if(window.currentSaveData[currentPlayerKey]['max_' + finalKey] !== undefined) {
-                 window.currentSaveData[currentPlayerKey]['max_' + finalKey] = 10;
-            }
+            // Force create/update max value so the stat sticks
+            window.currentSaveData[currentPlayerKey]['max_' + finalKey] = 10;
         });
     });
 }
 
-// This helper attaches the input event to save data instantly.
 function setupAutoSaveInput(inputId, dataKey, isInt = false) {
     const el = document.getElementById(inputId);
     if(!el) return;
     
-    // Grab the value before we replace the element.
     const currentVal = el.value; 
-
     const newEl = el.cloneNode(true);
-    
-    // Put the value back.
     newEl.value = currentVal; 
-    
     el.parentNode.replaceChild(newEl, el);
 
     newEl.addEventListener('input', (e) => {
@@ -587,21 +512,65 @@ function setupAutoSaveInput(inputId, dataKey, isInt = false) {
              document.getElementById('editor-player-title').textContent = `EDIT: ${val}`;
         }
         
-        // If they changed positions, we need to re-load the sliders.
         if(dataKey === 'position') {
              loadPlayerIntoEditor(currentPlayerKey, window.currentSaveData[currentPlayerKey]);
-             // Update the tag color in the list too.
              const itemTag = document.querySelector(`#item-${currentPlayerKey} .pos-tag`);
              if(itemTag) {
                  const newPosText = POS_MAP[val] || "??";
                  itemTag.textContent = newPosText;
-                 itemTag.className = "pos-tag"; // Reset classes
+                 itemTag.className = "pos-tag";
                  if([1,2,3,4,5].includes(val)) itemTag.classList.add(newPosText);
                  else if(val === 10) itemTag.classList.add("K");
                  else itemTag.classList.add("DF");
              }
         }
     });
+}
+
+function createFullPlayerTemplate(id) {
+    return {
+        fname: "New", lname: "Player", position: 1, age: 21,
+        roster_id: id, teamid: 0,
+        face_set: 0, face_x: 0, face_y: 0, skin: 1,
+        happiness: 50, attitude: 80, condition: 100,
+        
+        // Base Stats
+        speed: 5, max_speed: 10,
+        stamina: 5, max_stamina: 10,
+        strength: 5, max_strength: 10,
+        
+        // Primary Stat (Used for Throwing, Catching, Tackling, Blocking, Kicking)
+        skill: 5, max_skill: 10, 
+        
+        xp: 0, xp_gain: 0, xp_level: 1, potential: 3, 
+        contract: { yrs: 2, sal: 5000000, noTrd: 0 },
+        salary: 10, signed_year: 0,
+        drafted_pro_team: 0, walk_on: 0,
+        team_leave_reason: 0, intrade_pick: 0, outtrade_pick: 0,
+        
+        // Initialize Stats to 0
+        season_games: 0, career_games: 0,
+        season_yards: 0, career_yards: 0,
+        season_touchdowns: 0, career_touchdowns: 0,
+        season_attempts: 0, career_attempts: 0,
+        season_complete: 0, career_complete: 0,
+        season_int: 0, career_int: 0,
+        season_sacks: 0, career_sacks: 0,
+        season_tackles: 0, career_tackles: 0,
+        season_fumbles: 0, career_fumbles: 0,
+        season_longest: 0, career_longest: 0,
+        
+        stat_attempts: 0, stat_complete: 0, stat_yards: 0, stat_touchdowns: 0, 
+        stat_int: 0, stat_longest: 0, stat_sacks: 0,
+        stat_rush_attempts: 0, stat_rush_yards: 0, stat_rush_touchdowns: 0, stat_rush_longest: 0,
+        stat_tackles: 0, stat_fumbles: 0,
+        stat_kicks: 0, stat_throws: 0,
+        
+        scouted: 1, resting: 0, injury_week: 0,
+        meetingdone: 0, hof: 0,
+        epilogue: 0, epilogue_story: 0,
+        flash_time: 0, randnum: Math.random()
+    };
 }
 
 document.getElementById('add-player-btn')?.addEventListener('click', () => {
@@ -614,13 +583,8 @@ document.getElementById('add-player-btn')?.addEventListener('click', () => {
     }
     const newKey = `roster_${nextIndex}`;
     
-    // Default stats for a new rookie.
-    const newPlayer = {
-        fname: "New", lname: "Rookie", position: 1, age: 21,
-        attitude: 80, condition: 100, potential: 3, 
-        speed: 5, stamina: 5, strength: 5, throwing_accuracy: 5, 
-        roster_id: Math.floor(Math.random() * 999999) 
-    };
+    // Updated: Use the full template to avoid crashes
+    const newPlayer = createFullPlayerTemplate(Math.floor(Math.random() * 999999));
     
     data[newKey] = newPlayer;
     let currentSize = parseInt(data.roster || 0);

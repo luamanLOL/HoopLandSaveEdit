@@ -1,59 +1,34 @@
 import { detectAndDecode } from './rb-decoder.js';
+import { jsonToIni } from './rb-encoder.js';
 
-// Hey there! This is where we tell the editor what to show for each player.
-// Like, QB's need throw accuracy, but Linemen... not so much.
+// RBC uses 'skill' for the primary attribute of ALL positions.
 const POS_LABELS = {
-    // QB: These are the stats that matter for throwing the ball.
-    1: {
-        keys: ['throwing_accuracy', 'strength', 'speed', 'stamina'],
-        labels: ['THROW ACC', 'ARM STRN', 'SPEED', 'STAM']
-    },
-    // RB, TE, WR: The guys who run and catch.
-    2: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    3: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    4: { keys: ['catching', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // OL: The blockers. Pretty straightforward.
-    5: { keys: ['blocking', 'strength', 'speed', 'stamina'], labels: ['BLOCKING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // Defense (DL, LB, DB): Basically, how good are they at stopping the other team?
-    6: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    7: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    8: { keys: ['tackling', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
-    
-    // Kickers: Gotta have leg strength and aim.
-    10: {
-        keys: ['skill', 'strength', 'speed', 'stamina'], 
-        labels: ['KICK ACC', 'KICK RANGE', 'SPEED', 'STAMINA'] 
-    }
+    1: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['THROW ACC', 'ARM STRN', 'SPEED', 'STAM'] },
+    2: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    3: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    4: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['CATCHING', 'STREN', 'SPEED', 'STAMINA'] },
+    5: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['BLOCKING', 'STREN', 'SPEED', 'STAMINA'] },
+    6: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    7: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    8: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['TACKLING', 'STREN', 'SPEED', 'STAMINA'] },
+    10: { keys: ['skill', 'strength', 'speed', 'stamina'], labels: ['KICK ACC', 'KICK RANGE', 'SPEED', 'STAMINA'] }
 };
 
-// Quick map to turn numbers into positions, e.g. 1 = QB.
 const POS_MAP = {
     1: 'QB', 2: 'RB', 3: 'TE', 4: 'WR', 5: 'OL',
     6: 'DL', 7: 'LB', 8: 'DB', 10: 'K'
 };
 
-// Global variables to keep track of what's going on.
 window.currentSaveData = null;
-let currentPlayerKey = null; 
+window.originalFileName = null;
+let currentPlayerKey = null;
 let toastTimeout = null;
 
-// Wait for the page to be ready before we attach buttons and stuff.
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initUploadLogic();
-
-    // If the discord popup is showing, handle the buttons.
-    document.getElementById('discord-already-in-btn')?.addEventListener('click', () => {
-        if (!document.getElementById('discord-already-in-btn').classList.contains('disabled')) {
-            closeDiscordPopup();
-        }
-    });
-    document.getElementById('discord-join-btn')?.addEventListener('click', closeDiscordPopup);
 });
 
-// Setting up the menu buttons and navigation.
 function initNavigation() {
     const exitBtn = document.getElementById('exit-editor-btn');
     if(exitBtn) exitBtn.addEventListener('click', () => {
@@ -66,24 +41,18 @@ function initNavigation() {
         document.getElementById('player-editor-panel').classList.add('hidden');
     });
 
-    // The back button for the roster editor.
     const backBtn = document.getElementById('roster-back-btn');
     if(backBtn) {
         backBtn.addEventListener('click', () => {
-            // Go back to the list view
             document.getElementById('player-editor-panel').classList.add('hidden');
             document.getElementById('roster-list-pane').classList.remove('hidden');
-            
-            // Refresh the list just in case names changed.
             populateRosterList();
         });
     }
 
-    // Tab switching logic.
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = btn.getAttribute('data-tab');
-            // If the feature isn't done yet, just say so.
             if(targetId === 'tab-fa' || targetId === 'tab-schedule' || targetId === 'tab-team' || targetId === 'tab-league') {
                 showToast("FEATURE COMING SOON!", "info");
                 return;
@@ -100,17 +69,8 @@ function initNavigation() {
             }
         });
     });
-
-    // Toggle for QB mode (because sometimes you just wanna run it).
-    const qbToggle = document.getElementById('qb-mode-toggle');
-    if(qbToggle) qbToggle.addEventListener('change', (e) => {
-        if(!window.currentSaveData) return;
-        window.currentSaveData.qb_mode = e.target.checked ? 1 : 0;
-        showToast(e.target.checked ? "QB MODE ENABLED!" : "QB MODE DISABLED");
-    });
 }
 
-// Handling file uploads (drag and drop or click to browse).
 function initUploadLogic() {
     const dropZone = document.getElementById('drop-zone');
     const manualZone = document.getElementById('manual-zone');
@@ -131,18 +91,16 @@ function initUploadLogic() {
     });
 }
 
-// Reading the file contents.
 function handleFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => processData(e.target.result, file.name);
     reader.readAsText(file);
 }
 
-// Processing the data we just read.
 function processData(content, sourceName) {
     try {
+        window.originalFileName = sourceName;
         let decoded = null;
-        // Check if it's an INI file or just raw JSON.
         if (content.includes('="') || content.includes('=')) decoded = parseIni(content);
         else decoded = detectAndDecode(content);
 
@@ -153,28 +111,6 @@ function processData(content, sourceName) {
             document.getElementById('view-upload').classList.add('hidden');
             initEditor(); 
             showToast("SAVE LOADED!", "success");
-
-            // Discord popup countdown logic.
-            const discordPopup = document.getElementById('discord-popup');
-            const discordAlreadyInBtn = document.getElementById('discord-already-in-btn');
-            const discordCountdown = document.getElementById('discord-countdown');
-
-            if (discordPopup) {
-                discordPopup.classList.add('show');
-                let timeLeft = 5;
-                if (discordCountdown) discordCountdown.textContent = ` (${timeLeft}s)`;
-                if (discordAlreadyInBtn) discordAlreadyInBtn.classList.add('disabled');
-
-                const countdownTimer = setInterval(() => {
-                    timeLeft--;
-                    if (discordCountdown) discordCountdown.textContent = ` (${timeLeft}s)`;
-                    if (timeLeft <= 0) {
-                        clearInterval(countdownTimer);
-                        if (discordCountdown) discordCountdown.textContent = '';
-                        if (discordAlreadyInBtn) discordAlreadyInBtn.classList.remove('disabled');
-                    }
-                }, 1000);
-            }
         } else {
             showToast("NO VALID DATA FOUND", "error");
         }
@@ -184,14 +120,6 @@ function processData(content, sourceName) {
     }
 }
 
-function closeDiscordPopup() {
-    const discordPopup = document.getElementById('discord-popup');
-    if (discordPopup) {
-        discordPopup.classList.remove('show');
-    }
-}
-
-// Parsing the INI format line-by-line.
 function parseIni(text) {
     const lines = text.split(/\r?\n/);
     const result = {};
@@ -208,7 +136,6 @@ function parseIni(text) {
     return result;
 }
 
-// Unwrapping nested data structures.
 function deepUnwrap(obj) {
     if (!obj) return obj;
     if (obj.__RB_TYPE && obj.data !== undefined) return deepUnwrap(obj.data);
@@ -221,13 +148,10 @@ function deepUnwrap(obj) {
     return obj;
 }
 
-// Getting ready to edit.
 function getGeneralData() { return window.currentSaveData; }
 function getAllPlayerKeys() {
     const data = window.currentSaveData;
-    // Filter out only the roster keys.
     const keys = Object.keys(data).filter(k => k.startsWith('roster_'));
-    // Sort them nicely.
     keys.sort((a, b) => parseInt(a.replace('roster_', '')) - parseInt(b.replace('roster_', '')));
     return keys;
 }
@@ -236,32 +160,21 @@ function initEditor() {
     document.getElementById('view-editor').classList.remove('hidden');
     populateGeneralTab();
     populateRosterList();
-    checkQbMode();
 }
 
-function checkQbMode() {
-    const data = getGeneralData();
-    const isEnabled = (parseInt(data.qb_mode) === 1);
-    document.getElementById('qb-mode-toggle').checked = isEnabled;
-}
-
-// Showing the general team info.
 function populateGeneralTab() {
     const gen = getGeneralData();
     document.getElementById('gen-fname').value = gen.fname || "";
     document.getElementById('gen-lname').value = gen.lname || "";
     document.getElementById('gen-cc').value = parseInt(gen.coach_credit || 0);
-    document.getElementById('gen-fans').value = parseInt(gen.fans || 0);
-    document.getElementById('gen-cap').value = parseInt(gen.salary_cap || 200);
+    // RBC has scholarship fund instead of salary cap
+    document.getElementById('gen-cap').value = parseInt(gen.salary_cap || 50000); 
+    
     updateSlider('fac-stadium', 'val-stadium', parseInt(gen.facility_stadium || 1));
     updateSlider('fac-training', 'val-training', parseInt(gen.facility_training || 1));
     updateSlider('fac-rehab', 'val-rehab', parseInt(gen.facility_rehab || 1));
-    if(document.getElementById('gen-roster-size')) {
-        document.getElementById('gen-roster-size').value = parseInt(gen.roster || 0);
-    }
 }
 
-// Updating slider values on the screen.
 function updateSlider(id, labelId, val) {
     const el = document.getElementById(id);
     if(el) {
@@ -272,23 +185,17 @@ function updateSlider(id, labelId, val) {
 }
 
 document.getElementById('save-general-btn')?.addEventListener('click', () => {
-    // Saving general tab changes.
     const gen = getGeneralData();
     gen.fname = document.getElementById('gen-fname').value;
     gen.lname = document.getElementById('gen-lname').value;
     gen.coach_credit = document.getElementById('gen-cc').value;
-    gen.fans = document.getElementById('gen-fans').value;
     gen.salary_cap = document.getElementById('gen-cap').value;
     gen.facility_stadium = document.getElementById('fac-stadium').value;
     gen.facility_training = document.getElementById('fac-training').value;
     gen.facility_rehab = document.getElementById('fac-rehab').value;
-    if(document.getElementById('gen-roster-size')) {
-        gen.roster = document.getElementById('gen-roster-size').value;
-    }
     downloadSaveFile();
 });
 
-// Create the downloadable file.
 function downloadSaveFile() {
     if (!window.currentSaveData) return;
 
@@ -299,7 +206,7 @@ function downloadSaveFile() {
     if (overlay) overlay.classList.remove('hidden');
 
     let width = 0;
-    const duration = 3000; // Fake loading bar for effect
+    const duration = 3000;
     const intervalTime = 50;
     const step = 100 / (duration / intervalTime);
     
@@ -312,35 +219,40 @@ function downloadSaveFile() {
             if (statusText) statusText.textContent = "DOWNLOAD STARTING...";
             
             setTimeout(() => {
-                const dataStr = JSON.stringify(window.currentSaveData, null, 2);
-                const blob = new Blob([dataStr], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "retrobowl_edited.ini";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showToast("FILE EXPORTED!", "success");
+                try {
+                    const iniContent = jsonToIni(window.currentSaveData);
+                    const ext = window.originalFileName ? window.originalFileName.split('.').pop() : 'ini';
+                    const finalName = `modded with savexf.${ext}`;
 
-                sendExportWebhook("RB College");
+                    const blob = new Blob([iniContent], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = finalName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showToast("FILE EXPORTED!", "success");
+                    sendExportWebhook("Retro Bowl College");
 
-                // No more auto-reload. It kills iOS downloads.
-                // Let's give them a button to restart.
-                const btn = document.createElement('button');
-                btn.textContent = "RESET EDITOR";
-                btn.className = "pixel-btn red-btn";
-                btn.style.marginTop = "20px";
-                btn.onclick = () => location.reload();
-                
-                if (statusText) {
-                    statusText.textContent = "DOWNLOAD COMPLETE!";
-                    if (!statusText.parentNode.querySelector('.reset-btn-marker')) {
-                        btn.classList.add('reset-btn-marker');
-                        statusText.parentNode.appendChild(btn);
+                    const btn = document.createElement('button');
+                    btn.textContent = "RESET EDITOR";
+                    btn.className = "pixel-btn red-btn";
+                    btn.style.marginTop = "20px";
+                    btn.onclick = () => location.reload();
+                    
+                    if (statusText) {
+                        statusText.textContent = "DOWNLOAD COMPLETE!";
+                        if (!statusText.parentNode.querySelector('.reset-btn-marker')) {
+                            btn.classList.add('reset-btn-marker');
+                            statusText.parentNode.appendChild(btn);
+                        }
                     }
+                } catch (e) {
+                    console.error(e);
+                    showToast("EXPORT ERROR", "error");
                 }
             }, 500);
         }
@@ -348,67 +260,47 @@ function downloadSaveFile() {
     }, intervalTime);
 }
 
-// Sends a ping so we can count how many exports we've done globally.
 async function sendExportWebhook(gameName) {
-    const webhookURL = "https://discord.com/api/webhooks/1453972526777766081/IHCa60X3FPz8qaS8F8lBPGpwRfYqMs3X_w5UOH5xVMYcoVFamF5dugHNp863uxn0gvK1"; // PASTE YOUR WEBHOOK URL HERE
-
+    const webhookURL = "https://discord.com/api/webhooks/1453972526777766081/IHCa60X3FPz8qaS8F8lBPGpwRfYqMs3X_w5UOH5xVMYcoVFamF5dugHNp863uxn0gvK1";
+    
     const namespace = "SaveXF"; 
     const key = gameName.replace(/\s+/g, '-').toLowerCase() + "-exports";
 
     let globalCount = "N/A";
 
     try {
-        // Checking the count...
         const countRes = await fetch(`https://abacus.jasoncameron.dev/hit/${namespace}/${key}`);
-        
         if (countRes.ok) {
             const countData = await countRes.json();
             globalCount = countData.value;
-        } else {
-            console.warn("Counter API returned error:", countRes.status);
         }
-    } catch (err) {
-        console.warn("Could not fetch global count (API might be down):", err);
-    }
+    } catch (err) {}
 
     const data = window.currentSaveData || {};
-    
-    // 1. Get Game Specifics
     const coachName = (data.fname && data.lname) ? `${data.fname} ${data.lname}` : "Unknown Coach";
     const credits = data.coach_credit || "0";
-    const cap = data.salary_cap ? `$${data.salary_cap}M` : "N/A";
-    const isQBMode = (parseInt(data.qb_mode) === 1) ? "✅ Active" : "❌ Disabled";
+    const cap = data.salary_cap ? `$${data.salary_cap}` : "N/A";
     
-    // 2. Get Browser Specifics
-    const platform = navigator.platform; // e.g. "Win32", "iPhone"
+    const platform = navigator.platform;
     const screenRes = `${window.screen.width}x${window.screen.height}`;
-    
-    // 3. Time Spent (approximate)
-    // performance.now() returns milliseconds since page load. /1000/60 = minutes.
     const timeSpent = (performance.now() / 1000 / 60).toFixed(1) + " mins";
 
     const payload = {
         content: null,
         embeds: [{
-            title: `🏈 Export: ${gameName}`,
+            title: `🎓 Export: ${gameName}`,
             description: `**Total Global Exports:** \`${globalCount}\``,
-            color: 15105570, // Orange-ish for RB
+            color: 16763904, 
             fields: [
-                // Row 1: The "Who"
                 { name: "🧢 Coach", value: coachName, inline: true },
                 { name: "💰 Credits", value: `${credits} CC`, inline: true },
-                { name: "💵 Cap Space", value: cap, inline: true },
-                
-                // Row 2: The "What"
-                { name: "🏃 QB Mode", value: isQBMode, inline: true },
+                { name: "💵 Scholarship", value: cap, inline: true },
                 { name: "⏱️ Session Time", value: timeSpent, inline: true },
                 { name: "🖥️ Screen", value: screenRes, inline: true },
-
-                // Row 3: Footer info
                 { name: "📱 Device", value: platform, inline: true },
                 { name: "📅 Date", value: new Date().toLocaleDateString(), inline: true }
             ],
-            footer: { text: "RB Save Editor Logger" }
+            footer: { text: "RBC Save Editor Logger" }
         }]
     };
 
@@ -418,8 +310,6 @@ async function sendExportWebhook(gameName) {
         body: JSON.stringify(payload)
     }).catch(err => console.error("Webhook Error:", err));
 }
-
-// List all the players on the roster screen.
 
 function populateRosterList() {
     const listContainer = document.getElementById('roster-list-container');
@@ -474,17 +364,14 @@ function loadPlayerIntoEditor(key, player) {
     document.getElementById('p-fname').value = player.fname || "";
     document.getElementById('p-lname').value = player.lname || "";
     
-    // Making sure this is a string so the select box works.
     const posVal = player.position !== undefined ? player.position : 1;
     document.getElementById('p-position').value = String(posVal);
     
     document.getElementById('p-age').value = player.age || 21;
     
-    // Mapping mood and condition.
     document.getElementById('p-morale').value = player.attitude || 50;
     document.getElementById('p-condition').value = player.condition || 100;
 
-    // Auto-save setup.
     setupAutoSaveInput('p-fname', 'fname');
     setupAutoSaveInput('p-lname', 'lname');
     setupAutoSaveInput('p-position', 'position', true); 
@@ -492,7 +379,6 @@ function loadPlayerIntoEditor(key, player) {
     setupAutoSaveInput('p-morale', 'attitude', true);
     setupAutoSaveInput('p-condition', 'condition', true);
 
-    // Refreshing display values.
     const elMorale = document.getElementById('p-morale');
     const elCond = document.getElementById('p-condition');
 
@@ -513,10 +399,7 @@ function loadPlayerIntoEditor(key, player) {
     label.textContent = "ATTRIBUTES";
     attrContainer.appendChild(label);
 
-    // Dynamic slider generation based on position.
     const posID = parseInt(player.position || 1);
-    
-    // Fallback to QB if position is unknown.
     const config = POS_LABELS[posID] || POS_LABELS[1];
     
     const keysToRender = config.keys;
@@ -524,8 +407,7 @@ function loadPlayerIntoEditor(key, player) {
 
     keysToRender.forEach((attrKey, index) => {
         let finalKey = attrKey;
-        
-        // Handle attribute key differences.
+        // Legacy check, mostly redundant now that 'skill' is standard
         if (player[finalKey] === undefined && player['skill'] !== undefined) {
             finalKey = 'skill';
         }
@@ -549,13 +431,11 @@ function loadPlayerIntoEditor(key, player) {
             const newVal = parseInt(e.target.value);
             row.querySelector(`#val-${finalKey}`).textContent = newVal;
             
-            // Saving value.
+            // Update actual data
             window.currentSaveData[currentPlayerKey][finalKey] = newVal;
             
-            // Updating potential max.
-            if(window.currentSaveData[currentPlayerKey]['max_' + finalKey] !== undefined) {
-                 window.currentSaveData[currentPlayerKey]['max_' + finalKey] = 10;
-            }
+            // Force create/update max value so the stat is accepted by the game
+            window.currentSaveData[currentPlayerKey]['max_' + finalKey] = 10;
         });
     });
 }
@@ -564,14 +444,9 @@ function setupAutoSaveInput(inputId, dataKey, isInt = false) {
     const el = document.getElementById(inputId);
     if(!el) return;
     
-    // Capture value.
     const currentVal = el.value; 
-
     const newEl = el.cloneNode(true);
-    
-    // Restore value.
     newEl.value = currentVal; 
-    
     el.parentNode.replaceChild(newEl, el);
 
     newEl.addEventListener('input', (e) => {
@@ -583,21 +458,133 @@ function setupAutoSaveInput(inputId, dataKey, isInt = false) {
              document.getElementById('editor-player-title').textContent = `EDIT: ${val}`;
         }
         
-        // Reload if position changes to update sliders.
         if(dataKey === 'position') {
              loadPlayerIntoEditor(currentPlayerKey, window.currentSaveData[currentPlayerKey]);
-             // Update list item tag.
              const itemTag = document.querySelector(`#item-${currentPlayerKey} .pos-tag`);
              if(itemTag) {
                  const newPosText = POS_MAP[val] || "??";
                  itemTag.textContent = newPosText;
-                 itemTag.className = "pos-tag"; // Reset classes
+                 itemTag.className = "pos-tag";
                  if([1,2,3,4,5].includes(val)) itemTag.classList.add(newPosText);
                  else if(val === 10) itemTag.classList.add("K");
                  else itemTag.classList.add("DF");
              }
         }
     });
+}
+
+function createFullPlayerTemplate(id) {
+    return {
+        // --- Identity ---
+        fname: "New", 
+        lname: "Player", 
+        position: 1, 
+        age: 18, 
+        roster_id: id, 
+        teamid: 0,
+        
+        // --- Appearance ---
+        face_set: 0, 
+        face_x: 0, 
+        face_y: 0, 
+        skin: 1,
+        
+        // --- Academics & Background ---
+        // These MUST be strings to match the save format
+        major: "0", 
+        minor: "0", 
+        hobby: "0", 
+        hometown: 777, // Fixed: Was 'home_town'
+        
+        curriculum_interest: "Undeclared",
+        curriculum_vitae: "2024-H.S. Diploma", 
+        
+        // --- Costs & Values ---
+        rc_cost: 0, 
+        creditcost: 0, 
+        scholarship: 0, 
+        salary: 0, 
+        contract: { yrs: 4, sal: 0, noTrd: 0 }, 
+        signed_year: -1, // Default to -1 (unsigned)
+
+        // --- Status Flags ---
+        backup: 0, 
+        walk_on: 0, 
+        kr: 0, // Kick Returner flag
+        scouted: 1, 
+        resting: 0, 
+        injury_week: 0, 
+        suspended: 0,
+        meetingdone: 0, 
+        hof: 0,
+        
+        // --- Development ---
+        xp: 0, 
+        xp_gain: 0, 
+        xp_level: 1, 
+        skill_points: 0,
+        potential: 3, 
+        trait: "", // Must be a string (e.g., "TalentSpotter" or empty)
+        
+        // --- Social / GPA ---
+        percent_grade: 100.0, 
+        max_percent_grade: 100.0, 
+        happiness: 100, 
+        attitude: 100, 
+        condition: 100,
+        party_meter: 0, 
+        party_dilemmas: 0, 
+        toxic_dilemmas: 0,
+        subject_reveal: 2,
+
+        // --- Base Attributes ---
+        speed: 5, max_speed: 10,
+        stamina: 5, max_stamina: 10,
+        strength: 5, max_strength: 10,
+        skill: 5, max_skill: 10, 
+        
+        // --- Game Logic Strings ---
+        drafted_pro_team: "", // Must be string
+        team_leave_reason: "", // Must be string
+        epilogue: "", // Must be string
+        epilogue_story: "", // Must be string
+        intrade_pick: 0, 
+        outtrade_pick: 0,
+        
+        // --- STATS: General ---
+        season_games: 0, career_games: 0,
+        flash_time: 0, randnum: Math.random(),
+        
+        // --- STATS: Passing ---
+        stat_attempts: 0, season_attempts: 0, career_attempts: 0,
+        stat_complete: 0, season_complete: 0, career_complete: 0,
+        stat_yards: 0, season_yards: 0, career_yards: 0,
+        stat_touchdowns: 0, season_touchdowns: 0, career_touchdowns: 0,
+        stat_int: 0, season_int: 0, career_int: 0,
+        stat_longest: 0, season_longest: 0, career_longest: 0,
+        stat_sacks: 0, season_sacks: 0, career_sacks: 0,
+        stat_throws: 0, // Internal counter
+
+        // --- STATS: Rushing (CRITICAL MISSING BLOCK) ---
+        stat_rush_attempts: 0, season_rush_attempts: 0, career_rush_attempts: 0,
+        stat_rush_yards: 0, season_rush_yards: 0, career_rush_yards: 0,
+        stat_rush_touchdowns: 0, season_rush_touchdowns: 0, career_rush_touchdowns: 0,
+        stat_rush_longest: 0, season_rush_longest: 0, career_rush_longest: 0,
+        stat_trucking: 0,
+
+        // --- STATS: Receiving/Defense Misc ---
+        stat_tackles: 0, season_tackles: 0, career_tackles: 0,
+        stat_fumbles: 0, season_fumbles: 0, career_fumbles: 0,
+
+        // --- STATS: Kicking ---
+        stat_kicks: 0, // Field Goals made?
+        
+        // --- STATS: Returns (CRITICAL MISSING BLOCK) ---
+        stat_return_attempts: 0, season_return_attempts: 0, career_return_attempts: 0,
+        stat_return_yards: 0, season_return_yards: 0, career_return_yards: 0,
+        stat_return_tds: 0, season_return_tds: 0, career_return_tds: 0,
+        stat_return_longest: 0, season_return_longest: 0, career_return_longest: 0
+    };
 }
 
 document.getElementById('add-player-btn')?.addEventListener('click', () => {
@@ -610,12 +597,8 @@ document.getElementById('add-player-btn')?.addEventListener('click', () => {
     }
     const newKey = `roster_${nextIndex}`;
     
-    const newPlayer = {
-        fname: "New", lname: "Rookie", position: 1, age: 21,
-        attitude: 80, condition: 100, potential: 3, 
-        speed: 5, stamina: 5, strength: 5, throwing_accuracy: 5, 
-        roster_id: Math.floor(Math.random() * 999999) 
-    };
+    // Updated: Use the robust RBC template
+    const newPlayer = createFullPlayerTemplate(Math.floor(Math.random() * 999999));
     
     data[newKey] = newPlayer;
     let currentSize = parseInt(data.roster || 0);
